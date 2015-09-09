@@ -1,0 +1,9 @@
+Puppet configuration to support an RPKI publication server and associated
+infrastructure.
+
+This presumes there are multiple 'publication servers' ready to accept
+rsync connections (rcynic connections) from the rest of the RPKI participants,
+and a single server storing the private key data away from public eyes.
+
+<more stuff about rsync configuration management to support potentially
+highly active repository systems in the field>
