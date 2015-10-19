@@ -14,7 +14,6 @@ class users {
   #
   user {'rstory':
     ensure => 'present',
-    purge_ssh_keys => 'true',
   }
   ssh_authorized_key { 'rstory@sparta':
     user => 'rstory',
