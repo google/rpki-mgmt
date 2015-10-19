@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+$puppet_files_infra = "puppet:///files/infra"
 $rpki_pub_servers = {
                      'rpki-aspac-01' => 1,
                      'rpki-aspac-02' => 1,

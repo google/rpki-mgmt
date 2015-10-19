@@ -15,7 +15,7 @@
 
 class scripts {
   file { '/usr/local/bin/puppet_cleanup.sh':
-    source => 'puppet:///files/puppet_cleanup.sh',
+    source => "$::puppet_files_infra/files/puppet_cleanup.sh",
     mode => '0755',
   }
 }
