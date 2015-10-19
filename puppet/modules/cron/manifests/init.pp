@@ -21,4 +21,13 @@ class cron {
     user => 'root',
     minute => 0,
   }
+  #
+  # Host-specific cronjobs.
+  if $fqdn == 'rpki-puppet.c.rpki-pilot.internal' {
+    cron { git_sync:
+      command => '/usr/local/sbin/git_cron.sh > /tmp/git_cron.log 2>&1',
+      ensure => 'present',
+      user => 'root',
+    }
+  }
 }
