@@ -35,4 +35,5 @@ node "default" {
   include configs
   include scripts
   include services
+  include users
 }

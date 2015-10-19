@@ -41,8 +41,8 @@ PUPPET_INFRA_DIR=${PUPPET_DIR}/infra
 #       The git post-recieve hook at the main repository would:
 #       date '+%Y-%m-%h %H:%M:%S' > /tmp/git_cron.notify
 #       and the GIT_INFRA_NOTIFY would be /tmp/git_cron.notify
-#       not /var/log/messages.
-GIT_INFRA_NOTIFY=/var/log/syslog
+#       not /etc/passwd.
+GIT_INFRA_NOTIFY=/etc/passwd
 
 # Binaries
 GIT=/usr/bin/git
