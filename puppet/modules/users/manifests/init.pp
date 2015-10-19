@@ -28,6 +28,12 @@ class users {
   user {'rstory':
     ensure => 'present',
   }
+  file {'/home/rstory/.ssh':
+    ensure => 'directory',
+    owner => 'rstory',
+    group => 'rstory',
+    mode => 0700,
+  }
   ssh_authorized_key { 'rstory@sparta':
     user => 'rstory',
     type => 'ssh-dss',
