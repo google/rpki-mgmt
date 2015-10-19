@@ -41,8 +41,9 @@ PUPPET_INFRA_DIR=${PUPPET_DIR}/infra
 #       The git post-recieve hook at the main repository would:
 #       date '+%Y-%m-%h %H:%M:%S' > /tmp/git_cron.notify
 #       and the GIT_INFRA_NOTIFY would be /tmp/git_cron.notify
-#       not /etc/passwd.
-GIT_INFRA_NOTIFY=/etc/passwd
+#       not /var/log/syslog
+REMOVE_NOTIFY=
+GIT_INFRA_NOTIFY=/var/log/syslog
 
 # Binaries
 GIT=/usr/bin/git
@@ -96,7 +97,9 @@ else
         echo "No pp files to relocate."
       fi
     fi
-    /bin/rm ${GIT_INFRA_NOTIFY}
+    if [ ! -z ${REMOVE_NOTIFY} ]; then
+      /bin/rm ${GIT_INFRA_NOTIFY}
+    fi
   fi
 
 
