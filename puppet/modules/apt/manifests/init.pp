@@ -31,4 +31,7 @@ class apt {
   package { 'logrotate':
     ensure => 'installed',
   }
+  package { 'git':
+    ensure => 'installed',
+  }
 }
