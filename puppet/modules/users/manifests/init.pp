@@ -27,7 +27,14 @@ class users {
   #
   user {'rstory':
     ensure => 'present',
-    managehome => 'true',
+    comment => 'Robert Story',
+    shell => '/bin/bash',
+  }
+  file {'/home/rstory':
+    ensure => 'directory',
+    owner => 'rstory',
+    group => 'rstory',
+    mode => 0700,
   }
   file {'/home/rstory/.ssh':
     ensure => 'directory',
