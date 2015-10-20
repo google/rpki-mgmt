@@ -27,7 +27,7 @@ class users {
   #
   user {'rstory':
     ensure => 'present',
-    managed_home => 'true',
+    managehome => 'true',
   }
   file {'/home/rstory/.ssh':
     ensure => 'directory',
