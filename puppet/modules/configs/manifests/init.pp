@@ -38,7 +38,7 @@ class configs {
   # For pub servers ensure a copy of the rsyncd.conf template exists.
   if $rpki_pub_servers[$hostname] == 1 {
     file { '/etc/default/rsync':
-      source => "$::puppet:_files_infra/puupet/files/default-rsync",
+      source => "$::puppet_files_infra/puupet/files/default-rsync",
       ensure => 'file',
       mode => '0644',
       owner => 'root',
