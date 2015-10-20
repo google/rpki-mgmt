@@ -16,17 +16,17 @@
 class configs {
   # Place the puppet config and default puppet files.
   file { '/etc/default/puppet':
-    source => "$::puppet_files_infra/files/puppet/default-puppet",
+    source => "$::puppet_files_infra/puppet/files/default-puppet",
     ensure => 'file',
   }
   file { '/etc/puppet/puppet.conf':
-    source => 'puppet:///files/puppet.conf',
+    source => "$::puppet_files_infra/puppet/files/puppet.conf",
     ensure => 'file',
   }
   # Syslog clients get a client config.
   if $syslog_servers[$hostname] != 1 {
     file { '/etc/syslog-ng/syslog-ng.conf':
-      source => "$::puppet_files_infra/files/puppet/syslog-client.conf",
+      source => "$::puppet_files_infra/puppet/files/syslog-client.conf",
       ensure => 'file',
       mode => '0644',
       owner => 'root',
@@ -38,14 +38,14 @@ class configs {
   # For pub servers ensure a copy of the rsyncd.conf template exists.
   if $rpki_pub_servers[$hostname] == 1 {
     file { '/etc/default/rsync':
-      source => "$::puppet:_files_infra/files/puppet/default-rsync",
+      source => "$::puppet:_files_infra/puupet/files/default-rsync",
       ensure => 'file',
       mode => '0644',
       owner => 'root',
       group => 'root',
     }
     file { '/etc/rsyncd.conf.templ':
-      source => "$::puppet_files_infra/files/puppet/rsyncd.conf",
+      source => "$::puppet_files_infra/puppet/files/rsyncd.conf",
       ensure => 'file',
       mode => '0644',
       owner => 'root',
