@@ -38,8 +38,10 @@ rpki-us-03        - publication server US
 
 Your deployment maybe more widespread than this or less so, the framework
 should be able to expand/contract to meet your needs. The RPKI services are
-managed by this configuration/system are offered using the rpki.net reference
-platform.
+managed by this configuration/system are offered using the Dragon Research Labs
+reference platform:
+  <http://rpki.net/wiki/doc/RPKI/doc/RPKI/Installation/UbuntuRP>
+(a 'get going in 10 minutes' script)
 
 The basic rpkid services, data locations and processes are:
 rpkid - writes stuff to mysql, and to disk for pubd
