@@ -1,0 +1,212 @@
+############################
+## CLOUD content
+############################
+# List instances:
+gcloud --project=rpki-pilot compute instances list
+
+# ssh to instance:
+gcloud --project=rpki-pilot compute ssh <instancename>
+
+# Current running vms, in project rpki-pilot
+#
+# rpki-01 - 146.148.80.105
+# rpki-02 - 146.148.89.222
+
+############################
+## Setup instructions from:
+## http://trac.rpki.net/wiki/doc/RPKI/Installation/DebianPackages
+############################
+# On a running VM, to get the rpki.net repository configured for use:
+# Add the repository key:
+wget -q -O - http://download.rpki.net/APT/apt-gpg-key.asc | sudo apt-key add -
+
+# Add the repository to the apt-list.
+sudo wget -q -O /etc/apt/sources.list.d/rpki.list \
+                http://download.rpki.net/APT/rpki.debian.list
+
+# Pull the current catalog.
+sudo apt-get update
+
+# Install packages (RP and CA)
+sudo apt-get install rpki-rp rpki-ca
+
+# mysql passwd: gone4good
+# Note that rpki https certs (/etc/rpki/apache.cer|key) need to be replaced.
+
+#
+# script for install once the VM is built.
+wget -q -O - http://download.rpki.net/APT/apt-gpg-key.asc | sudo apt-key add -
+sudo wget -q -O /etc/apt/sources.list.d/rpki.list \
+  http://download.rpki.net/APT/rpki.trusty.list
+sudo wget -q -O /etc/apt/sources.list.d/rpki.list \
+  http://download.rpki.net/APT/rpki.precise.list
+sudo wget -q -O /etc/apt/sources.list.d/rpki.list \
+  http://download.rpki.net/APT/rpki.wheezy.list
+sudo apt-get update
+sudo apt-get install rpki-rp rpki-ca
+
+############################
+## On Device process.
+############################
+# WSCGI drops a bunch of errors for:
+# django.security.DisallowedHost Invalid HTTP_HOST header:
+# This is fixed with an update in rpki.conf, see below.
+
+  o add to rpki.conf
+    [web_portal] -> allowed-hosts = rpki.rarc.net
+  o set handle = <something unique for you>
+  o set rpkid_server_host = localhost
+  o set pubd_server_host = localhost
+  o set publication_rsync_server = <hostname>
+  o mkdir $HOME/logs
+  o start rpki server gears, manually until init.d shows up, with logging:
+    sudo rpki-start-servers --log-level debug --log-directory \
+         $HOME/logs --log-file
+  o create rpki gui user:
+    /usr/sbin/rpki-manage createsuperuser
+
+# In the web-gui
+  o Create a resource-holder (GOOG-morrowc)
+  o Export that and mail the xml to the parent (randy)
+    - 'export identity' link on the left panel
+    - wait for reply from parent (randy), reply should have more xml-goo
+  o Import the return from parent into the parents link
+  o Export parent and import the results into 'repository clients' section.
+  o Export repository client and Import into 'Repositories'
+    - wow, most of this should have been ... automated.
+    - perhaps there is an rpkic method for this?
+      (See docs apparently)
+  o Refresh to see resources!
+  o create roa (use: https://<host>/rpki/roa/create)
+    - Now fixed due to melkin's work. (and apt-get up(date|grade))
+    - note publication in /etc/rpki.conf:publication_base_directory
+
+# On the command-line of the server
+  o setup rsyncd (use sample rsyncd.conf from:
+    <https://trac.rpki.net/browser/trunk/ca/examples/rsyncd.conf>)
+    set the publication location AND group/user appropriately.
+  o push rsyncd config to rpki-pub.
+  o enable rsync in /etc/default/rsync
+    set RSYNC_ENABLE=true
+  o start rsyncd: /etc/init.d/rsync start
+  o test rsync connectivity
+    morrowc@morrowc-glaptop3:/tmp$ rsync rsync://rpki.rarc.net/rpki
+    drwxr-xr-x          4,096 2014/10/09 15:29:09 .
+    drwxr-xr-x          4,096 2014/10/09 20:50:30 GOOG-morrowc
+
+#
+# rcynic
+Default file location(s):
+  /var/rcynic/data - where da dataz are.
+  /var/rcynic/rpki-rtr - binary data to be sent to routers.
+
+
+###############################
+## To split services
+###############################
+rpkid - writes stuff to mysql, and to disk for pubd
+pubd - can offer services to clients, we will not
+rsyncd (publication point) - is only /usr/share/rpki/publication's content
+
+Push all publication content to rsyncd servers worldwide:
+  o write script to wrangle this push and flip into place.
+    - consider rysnc from inetd with programmatically generated rsyncd.conf
+  o push content from CA devices out to above sets
+  o close off CA access from the world
+
+
+##############################
+## Gcloud compute commandline.
+##############################
+# Standard selections:
+#   machine type: n1-standard-2
+
+# List regions
+gcloud --project rpki-pilot compute regions list
+
+# List zones
+gcloud --project rpki-pilot copmute zones list
+
+# List machine types
+gcloud --project rpki-pilot compute machine-types list
+
+# List addresses
+gcloud --project rpki-pilot compute addresses list
+
+# ssh to an instance (with/out static ip)
+gcloud --project rpki-pilot compute instances ssh <name>
+
+# create addresses
+gcloud --project rpki-pilot compute address create <name> \
+       --region <REGION>
+
+# create instance
+gcloud --project rpki-pilot compute instances create <name> \
+       --machine-type <TYPE> --address <address> --image debian-7 \
+       --zone <ZONE>
+
+
+#################################
+## Progress
+#################################
+$ gcloud compute addresses list
+
+
+ud compute addresses list
+NAME             REGION       ADDRESS         STATUS
+rpki-aspac-03    asia-east1   130.211.241.35  IN_USE
+rpki-aspac-01    asia-east1   130.211.240.47  IN_USE
+rpki-aspac-02    asia-east1   130.211.254.113 IN_USE
+rpki-us-02       us-central1  130.211.120.103 IN_USE
+rpki-syslog-na   us-central1  146.148.75.76   IN_USE
+rpki-02          us-central1  146.148.89.222  IN_USE
+rpki-puppet      us-central1  107.178.212.47  IN_USE
+rpki-us-01       us-central1  146.148.76.245  IN_USE
+rpki-01          us-central1  146.148.80.105  IN_USE
+rpki-us-03       us-central1  146.148.92.5    IN_USE
+rpki-syslog-emea europe-west1 104.155.2.27    IN_USE
+rpki-emea-02     europe-west1 104.155.1.119   IN_USE
+rpki-emea-01     europe-west1 146.148.121.80  IN_USE
+
+
+ud compute instances list
+NAME             ZONE           MACHINE_TYPE  INTERNAL_IP    EXTERNAL_IP STATUS
+rpki-aspac-01    asia-east1-a   n1-standard-2 10.240.50.58   130.211.240.47 RUNNING
+rpki-aspac-02    asia-east1-b   n1-standard-2 10.240.152.43  130.211.254.113 RUNNING
+rpki-aspac-03    asia-east1-c   n1-standard-2 10.240.250.120 130.211.241.35 RUNNING
+rpki-syslog-emea europe-west1-a g1-small      10.240.95.52   104.155.2.27 RUNNING
+rpki-emea-01     europe-west1-a n1-standard-2 10.240.220.114 146.148.121.80 RUNNING
+rpki-emea-02     europe-west1-b n1-standard-2 10.240.181.247 104.155.1.119 RUNNING
+scanner          us-central1-a  n1-standard-1 10.240.148.205 162.222.178.56 TERMINATED
+rpki-us-01       us-central1-a  n1-standard-2 10.240.71.177  146.148.76.245 RUNNING
+rpki-puppet      us-central1-a  g1-small      10.240.185.188 107.178.212.47 RUNNING
+rpki-syslog-na   us-central1-a  g1-small      10.240.205.103 146.148.75.76 RUNNING
+rpki-us-02       us-central1-b  n1-standard-2 10.240.158.42  130.211.120.103 RUNNING
+rpki-us-03       us-central1-f  n1-standard-2 10.240.4.27    146.148.92.5 RUNNING
+rpki-02          us-central1-f  n1-standard-2 10.240.174.25  146.148.89.222 RUNNING
+rpki-01          us-central1-f  n1-standard-2 10.240.40.251  146.148.80.105 RUNNING
+
+
+################################
+## Puppet information
+################################
+puppet-master: rpki-puppet
+
+packages to install:
+  puppetmaster
+  puppetmaster-passenger
+  puppetmaster-common
+  puppet
+
+###############################
+## ssh to all vms and
+## make them update/upgrade
+##
+## mix/match for hostname regex or installation of packages.
+###############################
+for d in $(gcloud compute instances list | grep -v NAME | awk '{print $1 ":" $2}'); do
+  MACH=$(echo $d | awk -F: '{print $1}')
+  ZONE=$(echo $d | awk -F: '{print $2}')
+  gcloud compute ssh --zone=${ZONE} --command 'sudo apt-get update' ${MACH}
+  gcloud compute ssh --zone=${ZONE} --command 'sudo apt-get -y upgrade' ${MACH}
+done
