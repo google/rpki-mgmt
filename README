@@ -1,3 +1,18 @@
+#
+# Copyright 2014 Google Inc. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 Puppet configuration to support an RPKI publication server and associated
 infrastructure.
 
@@ -5,5 +20,36 @@ This presumes there are multiple 'publication servers' ready to accept
 rsync connections (rcynic connections) from the rest of the RPKI participants,
 and a single server storing the private key data away from public eyes.
 
-<more stuff about rsync configuration management to support potentially
-highly active repository systems in the field>
+The basic systems deployed for this example are:
+
+rpki-01           - master rpki server
+rpki-02           - master rpki server (backup)
+rpki-aspac-01     - publication server AP
+rpki-aspac-02     - publication server AP
+rpki-aspac-03     - publication server AP
+rpki-emea-01      - publication server EU
+rpki-emea-02      - publication server EU
+rpki-puppet       - puppet-master server
+rpki-syslog-emea  - publication server EU
+rpki-syslog-na    - publication server EU
+rpki-us-01        - publication server US
+rpki-us-02        - publication server US
+rpki-us-03        - publication server US
+
+Your deployment maybe more widespread than this or less so, the framework
+should be able to expand/contract to meet your needs. The RPKI services are
+managed by this configuration/system are offered using the rpki.net reference
+platform.
+
+The basic rpkid services, data locations and processes are:
+rpkid - writes stuff to mysql, and to disk for pubd
+pubd - can offer services to clients
+rsyncd (publication point) - is only /usr/share/rpki/publication's content
+
+This configuration will push all publication content to rsyncd servers, run
+a script from cron to wrangle the publication data out to all publication
+servers and move the rsyncd configuration to keep track of 'HEAD' for this data.
+
+Rsyncd will be managed by inetd/xinetd, so each client will see a clean and
+unchanging dataset to retrieve. Rotation of that data off the disk will happen
+in a timely fashion as well.
