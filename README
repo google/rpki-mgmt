@@ -30,8 +30,8 @@ rpki-aspac-03     - publication server AP
 rpki-emea-01      - publication server EU
 rpki-emea-02      - publication server EU
 rpki-puppet       - puppet-master server
-rpki-syslog-emea  - publication server EU
-rpki-syslog-na    - publication server EU
+rpki-syslog-emea  - syslog collection server EU
+rpki-syslog-na    - syslog collection server EU
 rpki-us-01        - publication server US
 rpki-us-02        - publication server US
 rpki-us-03        - publication server US
