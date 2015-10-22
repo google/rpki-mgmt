@@ -20,11 +20,13 @@ $rpki_pub_servers = {
                      'rpki-aspac-03' => 1,
                      'rpki-emea-01' => 1,
                      'rpki-emea-02' => 1,
+                     'rpki-emea-03' => 1,
                      'rpki-us-01' => 1,
                      'rpki-us-02' => 1,
                      'rpki-us-03' => 1,
                     }
 $syslog_servers = {
+                   'rpki-syslog-aspac' => 1,
                    'rpki-syslog-emea' => 1,
                    'rpki-syslog-na' => 1,
                   }
