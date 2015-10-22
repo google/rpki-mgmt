@@ -23,6 +23,14 @@ class configs {
     source => "$::puppet_files_infra/puppet/files/puppet.conf",
     ensure => 'file',
   }
+  # Place a standard sudoers file.
+  file { '/etc/sudoers':
+    source => "$::puppet_files_infra/puppet/files/sudoers",
+    ensure => 'file',
+      mode => '0440',
+      owner => 'root',
+      group => 'root',
+  }
   # Syslog clients get a client config.
   if $syslog_servers[$hostname] != 1 {
     file { '/etc/syslog-ng/syslog-ng.conf':
