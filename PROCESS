@@ -1,0 +1,26 @@
+#
+# RPKI Master should be internal (to your organization) available only.
+# RPKI slaves (publication servers) should hold the publicly available data
+#   and should offer rsync access to the published data.
+#
+# The rsync daemon should run from inetd/xinetd.
+# Periodically the rsyncd configuration will be updated to point at an updated
+#   copy of all RPKI published data.
+# Scheduled jobs on the RPKI-master will create and push to all RPKI-slaves
+#   the updated RPKI data.
+# After all publication servers are updated, rsyncd configuration files will be
+#   moved into place pointing to the updated content.
+#
+# Actions on the RPKI-master:
+1) support changes to the RPKI data for an organization.
+2) maintain a local repository.
+3) trigger on change of RPKI data a data push to the slaves.
+4) push publication data over rsync to all slaves
+
+#
+# Actions on the RPKI-slaves:
+1) provide a writable destination for RPKI-master to push all content on
+   every refresh/update event.
+2) move all refresh/update data to a newly created location for the public
+   rsync service to serve.
+3) Ensure that all RPKI-slaves serve the same content at the same time.
