@@ -18,10 +18,10 @@ pid file        = /var/run/rsyncd.pid
 uid             = nobody
 gid             = nogroup
 
-[rpki]
+[<%= @publicationName %>]
     use chroot          = no
     read only           = yes
     transfer logging    = yes
-    path                = SYNCPATH
-    comment             = RPKI-HOSTNAME Testbed Googlez
+    path                = <%= @publicationBase %>/<%= @publicationName %>/publication/
+    comment             = <%= @hostname %> <%= @publicationName %> Testbed Googlez
 

@@ -22,9 +22,8 @@ class rpki::publish(
   package { 'rsync':
     ensure => 'installed',
   } ->
-  file { '/etc/rsyncd.conf.templ':
-    source => "puppet:///modules/rpki/rsyncd.conf",
-    ensure => 'file',
+  file { '/etc/rsyncd.conf':
+    content => template('rpki/rsyncd.conf.erb'),
     mode => '0644',
     owner => 'root',
     group => 'root',
@@ -35,6 +34,13 @@ class rpki::publish(
     line   => 'RSYNC_ENABLE=true',
     path   => '/etc/default/rsync',
     notify => Service["rsync"],
+  } ->
+  file { ["$publicationBase", "$publicationBase/$publicationName",
+          "$publicationBase/$publicationName/publication",]:
+    ensure => directory,
+    owner  => 'root',
+    group  => 'root',
+    mode   => 0755,
   } ->
   service { 'rsync':
     ensure => 'running',
