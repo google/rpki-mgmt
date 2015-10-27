@@ -13,6 +13,28 @@
 # limitations under the License.
 #
 
-class rpki {
-  
+class rpki(
+  $baseDir   = $::rpki::params::baseDir,
+  $logServer = $::rpki::params::logServer,
+  ) inherits ::rpki::params {
+
+  exec { 'apt-update':
+    command => '/usr/bin/apt-get update',
+    refreshonly => true,
+  }
+
+  # do apt update before any package get installed
+  Exec["apt-update"] -> Package <| |>
+
+  anchor { 'rpki::begin': }
+  anchor { 'rpki::end': }
+  Anchor['rpki::begin'] ->
+    Class['rpki::install'] ->
+    Class['rpki::config'] ->
+    Class['rpki::service'] ->
+  Anchor['rpki::end']
+
+  include rpki::install
+  include rpki::config
+  include rpki::service
 }
