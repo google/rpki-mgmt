@@ -16,10 +16,5 @@
 class rpki::config(
   ) inherits ::rpki::params
 {
-  service { 'syslog-ng':
-    ensure => "running",
-    enable => 'true',
-    require => Package['syslog-ng'],
-  }
 
 }

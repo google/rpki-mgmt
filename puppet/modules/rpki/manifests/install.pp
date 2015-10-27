@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-define rpki::common::install(
+class rpki::install(
 )
 {
   package { 'openssh-server':
@@ -25,12 +24,6 @@ define rpki::common::install(
   package { 'syslog-ng':
     ensure => 'installed',
   }
-  service { 'syslog-ng':
-    ensure => "running",
-    enable => 'true',
-    require => Package['syslog-ng'],
-  }
-
   package { 'logrotate':
     ensure => 'installed',
   }

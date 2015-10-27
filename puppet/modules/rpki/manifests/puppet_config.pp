@@ -35,12 +35,9 @@ class rpki::puppet_config(
   file { '/usr/local/bin/puppet_cleanup.sh':
     source => "puppet:///modules/rpki/puppet_cleanup.sh",
     ensure => 'file',
-    mode => '0755',
-  } ->
-  service { 'puppet':
-    ensure => "running",
-    enable => 'true',
-    require => Package['puppet'],
+    owner => 'root',
+    group => 'root',
+    mode => '0750',
   }
 
   # Run puppet cleanup, make sure puppet is not hung, restart if it has.
