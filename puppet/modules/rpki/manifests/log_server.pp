@@ -14,8 +14,14 @@
 #
 
 class rpki::log_server(
-  $baseDir   = $::rpki::params::baseDir,
-  $logServer = $::rpki::params::logServer,
   ) inherits ::rpki::params {
 
+  file { '/etc/syslog-ng/syslog-ng.conf':
+    source => "puppet:///modules/rpki/syslog-server.conf",
+    ensure => 'file',
+    mode => '0644',
+    owner => 'root',
+    group => 'root',
+    notify => Service['syslog-ng'],
+  }
  }
