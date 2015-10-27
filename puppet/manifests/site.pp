@@ -13,32 +13,127 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-$puppet_files_infra = "puppet:///files/infra"
-$rpki_pub_servers = {
-                     'rpki-aspac-01' => 1,
-                     'rpki-aspac-02' => 1,
-                     'rpki-aspac-03' => 1,
-                     'rpki-emea-01' => 1,
-                     'rpki-emea-02' => 1,
-                     'rpki-emea-03' => 1,
-                     'rpki-us-01' => 1,
-                     'rpki-us-02' => 1,
-                     'rpki-us-03' => 1,
-                    }
-$syslog_servers = {
-                   'rpki-syslog-aspac' => 1,
-                   'rpki-syslog-emea' => 1,
-                   'rpki-syslog-na' => 1,
-                  }
+# ---------------------------------------------------------------
+#
+# This layout uses the Role/Profile model from
+#    http://www.craigdunn.org/2012/05/239/
+#
+# A node should have one role (e.g. webserver), and that role
+# can include multiple profiles (e.g. apache, mysql, etc).
+#
+# "Roles are intended to be aggregator Puppet classes. Apply a
+#  single role at the classification level. If more than one
+#  role is being applied to a single node, perhaps it should be
+#  a profile instead, or perhaps that combination of profiles
+#  should be turned into a role."
+#
+# "Profiles are intended to be aggregator Puppet classes that
+#  put together utility modules to construct site-meaningful
+#  configurations. They deal with high-level abstractions and
+#  glue them together. Multiple profiles may be deployed to a
+#  single machine. Profiles are often the building blocks of
+#  Roles."
+# ---------------------------------------------------------------
+
+# ---------------------------------------------------------------
+# Globals
+# ---------------------------------------------------------------
+
+# syslog servers that all clients will use 
+$syslog_servers = [
+                   'rpki-syslog-aspac',
+                   'rpki-syslog-emea',
+                   'rpki-syslog-na',
+                  ]
+
+$puppet_server = 'myPuppetServer.localdomain'
+
+# ---------------------------------------------------------------
+# Nodes
+# ---------------------------------------------------------------
+
+# syslog servers
+node 'rpki-syslog-emea', 'rpki-syslog-na'
+{
+  include role::log_server
+}
+
+# publication nodes
+node 'rpki-aspac-01', 'rpki-aspac-02', 'rpki-aspac-03',
+     'rpki-emea-01', 'rpki-emea-02',
+     'rpki-us-01', 'rpki-us-02', 'rpki-us-03'
+{
+  include role::pub_server
+}
+
+node 'deb7-tmpl-lab'
+{
+  include role::rpki_master
+}
 
 node "default" {
-  include apt
-  include cron
+  include stdlib
+  class { "common_config": }
+
+  class { "rpki::puppet_config":
+     puppetServer => 'myPuppetServer.localdomain',
+  }
+}
+
+# ---------------------------------------------------------------------
+# Roles
+# ---------------------------------------------------------------------
+
+class role::pub_server {
+  include profile::client
+  include rpki::publish
+}
+
+class role::log_server {
+  include profile::common
+  include rpki::log_server
+}
+
+class role::rpki_master {
+  include profile::client
+  include rpki::relying_party
+}
+
+# ---------------------------------------------------------------------
+# Profiles
+# ---------------------------------------------------------------------
+class profile::common {
+  include stdlib
+
+  # set up users, etc
+  class { "common_config": }
+
+  # install/config common packages
   include rpki
-  include configs
-  include scripts
-  include services
-  include users
+}
+
+class profile::client(
+  $logServer = $syslog_servers,
+  $puppetServer = $puppet_server,
+) {
+  include profile::common
+
+  # configure puppet server
+  class { "rpki::puppet_config":
+     puppetServer => $puppetServer,
+  }
+
+  # set up log destination
+  class { "rpki::log_client":
+    logServer => $logServer,
+  }
+}
+
+# ---------------------------------------------------------------------
+# Classes
+# ---------------------------------------------------------------------
+
+class common_config {
   # --- Users ---
   #
   # morrowc
