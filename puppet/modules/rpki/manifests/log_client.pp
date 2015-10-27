@@ -19,12 +19,12 @@ class rpki::log_client(
   ) inherits ::rpki::params {
 
   file { '/etc/syslog-ng/syslog-ng.conf':
-    source => "$::puppet_files_infra/puppet/files/syslog-client.conf",
-    ensure => 'file',
+    content => template('rpki/syslog-client.conf.erb'),
+    ensure => 'present',
     mode => '0644',
     owner => 'root',
     group => 'root',
     notify => Service['syslog-ng'],
   }
 
- }
+}
