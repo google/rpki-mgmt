@@ -44,6 +44,7 @@ $syslog_servers = [
                    'rpki-syslog-aspac',
                    'rpki-syslog-emea',
                    'rpki-syslog-na',
+                   'rpki-pup-log1',
                   ]
 
 $puppet_server = 'rpki-pup-pup1.netsec'
@@ -52,21 +53,25 @@ $puppet_server = 'rpki-pup-pup1.netsec'
 # Nodes
 # ---------------------------------------------------------------
 
+# ------------------------------------
 # syslog servers
-node 'rpki-syslog-emea', 'rpki-syslog-na'
+node 'rpki-syslog-emea', 'rpki-syslog-na', 'rpki-pup-log1', 'rstory-rpki-deb7'
 {
   include role::log_server
 }
 
+# ------------------------------------
 # publication nodes
 node 'rpki-aspac-01', 'rpki-aspac-02', 'rpki-aspac-03',
      'rpki-emea-01', 'rpki-emea-02',
-     'rpki-us-01', 'rpki-us-02', 'rpki-us-03'
+     'rpki-us-01', 'rpki-us-02', 'rpki-us-03',
+     'rpki-pup-pub1'
 {
   include role::pub_server
 }
 
-node 'deb7-tmpl-lab'
+# ------------------------------------
+node 'rpki-pup-ca1', 'deb7-tmpl-lab'
 {
   include role::rpki_master
 }
@@ -77,6 +82,7 @@ node 'rpki-pup-pup1'
   include role::puppet_master
 }
 
+# ------------------------------------
 node "default" {
   include stdlib
   class { "common_config": }
@@ -91,15 +97,32 @@ node "default" {
 # ---------------------------------------------------------------------
 
 class role::pub_server {
+
   include profile::client
-  include rpki::publish
 
   class { 'rpki::iptables':
     rolePublicationServer => true,
     sshRestrictSource => '10.71.0.0/16',
     sshUnrestrictedPort => 122,
   }
+
+  # publish rpki data for the world
+  file { ['/srv/rsync/', '/srv/rsync/rpki/']:
+    ensure => directory,
+    owner  => 'root',
+    group  => 'root',
+    mode   => 0755,
+  }
+  class { 'rpki::publish':
+    moduleName => 'rpki',
+    modulePath => '/srv/rsync/rpki',
+    moduleDescription => "$::hostname RPKI Testbed Googlez",
+    moduleSource => 'rpki-01::rpki/',
+    require => File['/srv/rsync/rpki'],
+  }
 }
+
+# ------------------------------------
 
 class role::log_server {
 
@@ -133,9 +156,10 @@ class role::puppet_master {
   include rpki::puppet_master
 }
 
+# ------------------------------------
+
 class role::rpki_master {
   include profile::client
-  include rpki::relying_party
 
   class { 'rpki::iptables':
 
@@ -147,6 +171,23 @@ class role::rpki_master {
     # but only to these clients
     rsyncClients => [ 'rpki-pup-pub1' ],
   }
+
+  # publish rpki data for publication servers
+  file { ['/usr/share/rpki', '/usr/share/rpki/publication']:
+    ensure => directory,
+    owner  => 'root',
+    group  => 'root',
+    mode   => 0755,
+  }
+
+  class { 'rpki::publish':
+    moduleName => 'rpki',
+    modulePath => '/usr/share/rpki/publication',
+    moduleDescription => "$::hostname RPKI Testbed Googlez",
+    require => File['/usr/share/rpki/publication'],
+  }
+
+  include rpki::ca
 }
 
 # ---------------------------------------------------------------------
@@ -186,6 +227,8 @@ class profile::common {
   }
 
 }
+
+# ------------------------------------
 
 class profile::client(
   $logServer = $syslog_servers,
