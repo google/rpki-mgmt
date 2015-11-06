@@ -26,26 +26,4 @@ class rpki::log_client(
     notify => Service['syslog-ng'],
   }
 
-  file { '/etc/syslog-ng/ca.d/':
-    ensure => directory,
-    owner => 'root',
-    group => 'root',
-    mode => '0644',
-  }
-
-  file { '/etc/syslog-ng/ca.pem':
-    ensure => present,
-    source => '/var/lib/puppet/ssl/certs/ca.pem',
-    require => File['/etc/syslog-ng/ca.d/'],
-  }
-
-  $caHash_line = generate ("/usr/bin/openssl",  "x509", "-noout", "-hash", "-in", "/var/lib/puppet/ssl/certs/ca.pem")
-  $caHash = chomp($caHash_line)
-
-  file { "/etc/syslog-ng/ca.d/$caHash.0":
-    ensure => link,
-    target => '/etc/syslog-ng/ca.d/ca.pem',
-    require => File['/etc/syslog-ng/ca.d/'],
-    notify => Service['syslog-ng'],
-  }
 }
