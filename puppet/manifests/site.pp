@@ -46,7 +46,7 @@ $syslog_servers = [
                    'rpki-syslog-na',
                   ]
 
-$puppet_server = 'myPuppetServer.localdomain'
+$puppet_server = 'rpki-pup-pup1.netsec'
 
 # ---------------------------------------------------------------
 # Nodes
@@ -71,12 +71,18 @@ node 'deb7-tmpl-lab'
   include role::rpki_master
 }
 
+# ------------------------------------
+node 'rpki-pup-pup1'
+{
+  include role::puppet_master
+}
+
 node "default" {
   include stdlib
   class { "common_config": }
 
   class { "rpki::puppet_config":
-     puppetServer => 'myPuppetServer.localdomain',
+     puppetServer => $puppet_server,
   }
 }
 
@@ -111,6 +117,20 @@ class role::log_server {
   }
   class { 'rpki::log_server':
   }
+}
+
+# ------------------------------------
+
+class role::puppet_master {
+  include profile::client
+
+  class { 'rpki::iptables':
+    rolePuppetServer => true,
+    sshRestrictSource => '10.71.0.0/16',
+    sshUnrestrictedPort => 122,
+  }
+
+  include rpki::puppet_master
 }
 
 class role::rpki_master {

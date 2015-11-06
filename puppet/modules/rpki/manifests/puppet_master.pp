@@ -13,10 +13,10 @@
 # limitations under the License.
 #
 
-define rpki::puppet_master(
+class rpki::puppet_master(
 )
 {
-  package { 'git':
+  package { ['git', 'puppetmaster']:
     ensure => 'installed',
   } ->
   file { "/usr/local/sbin/git_cron.sh":
@@ -30,6 +30,39 @@ define rpki::puppet_master(
     ensure => 'present',
     user => 'root',
     require => File['/usr/local/sbin/git_cron.sh'],
+  }
+
+  file {
+    [
+     # mount directories for fileserver
+     '/etc/puppet/mounts',
+     '/etc/puppet/mounts/private', '/etc/puppet/mounts/public',
+     # repo for pulling config
+     '/srv/repo', '/srv/repo/rpki-mgmt',
+     # puppet server modules
+     '/etc/puppet/modules/git', '/etc/puppet/modules/git/files',
+     '/etc/puppet/modules/git/files/infra',
+     ] :
+      ensure => 'directory',
+      owner => 'root',
+      group => 'root',
+      mode => 0750,
+  } ->
+  ini_setting { 'puppet mount private host files':
+    ensure => 'present',
+    path   => '/etc/puppet/fileserver.conf',
+    section => 'private',
+    setting => 'path',
+    key_val_separator => ' ',
+    value   => "/etc/puppet/mounts/private/%H",
+  }
+  ini_setting { 'puppet mount public files':
+    ensure => 'present',
+    path   => '/etc/puppet/fileserver.conf',
+    section => 'public',
+    setting => 'path',
+    key_val_separator => ' ',
+    value   => "/etc/puppet/mounts/public",
   }
 
 }

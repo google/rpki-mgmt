@@ -28,7 +28,7 @@ class rpki::puppet_config(
   ini_setting { 'puppet server':
     ensure => 'present',
     path   => '/etc/puppet/puppet.conf',
-    section => 'agent',
+    section => 'main',
     setting => 'server',
     value   => "$puppetServer",
   } ->
