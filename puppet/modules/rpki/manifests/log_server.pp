@@ -13,15 +13,15 @@
 # limitations under the License.
 #
 
-class rpki::log_server(
-  ) inherits ::rpki::params {
+class rpki::log_server() inherits ::rpki::params
+{
 
   file { '/etc/syslog-ng/syslog-ng.conf':
-    source => "puppet:///modules/rpki/syslog-server.conf",
-    ensure => 'file',
+    content => template('rpki/syslog-server.conf.erb'),
+    ensure => 'present',
     mode => '0644',
     owner => 'root',
     group => 'root',
     notify => Service['syslog-ng'],
   }
- }
+}

@@ -90,8 +90,16 @@ class role::pub_server {
 }
 
 class role::log_server {
+
   include profile::common
-  include rpki::log_server
+
+  # configure puppet server
+  class { 'rpki::puppet_config':
+     puppetServer => $puppet_server,
+  }
+
+  class { 'rpki::log_server':
+  }
 }
 
 class role::rpki_master {

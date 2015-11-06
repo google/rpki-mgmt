@@ -31,9 +31,11 @@ keep_hostname(yes);
 # Listen on all addresses, on port 5140.
 # Require the ssl certs from the system and it's key.
 source s_net { tcp( ip(0.0.0.0) port(5140) max-connections(100)
-                 tls( key_file("/etc/ssl/private/ssl-cert-snakeoil.key")
-                      cert_file("/etc/ssl/certs/ssl-cert-snakeoil.pem")
-                      peer_verify(require-untrusted)
+                 tls(
+                      ca_dir("/etc/syslog-ng/ca.d")
+                      key_file("<%= @sslKey -%>")
+                      cert_file("<%= @sslCert -%>")
+                      peer_verify(optional-untrusted)
                      )
                   );
               };
