@@ -13,16 +13,19 @@
 # limitations under the License.
 #
 
-class rpki::relying_party(
+class rpki::ca(
   $manageRcynic = $rpki::params::manageRcynic,
+  $manageCA = $rpki::params::manageRPKI_CA,
   $rcynicBase = $rpki::params::rcynicBase,
 )
 {
-  rpki::repo { 'setup repo': }
+  rpki::rpki_repo { 'rpki repo ca': }
 
-  package { 'rpki-rp':
-     require => [ File['/etc/apt/sources.list.d/rpki.list'], Exec['add rpki GPG key'] ],
-     ensure => 'latest',
+  if $manageCA {
+    package { 'rpki-ca':
+      require => [ File['/etc/apt/sources.list.d/rpki.list'], Exec['add rpki GPG key'] ],
+      ensure => 'latest',
+    }
   }
 
   #--------------------------------------------------------------------
@@ -35,7 +38,7 @@ class rpki::relying_party(
   #   max-parallel-fetches    = 8
   #   use-syslog              = true
   #   log-level               = log_usage_err
-
+  
   if $manageRcynic {
     ini_setting { 'rcynic trust-anchor-directory':
       ensure => 'present',
@@ -43,27 +46,27 @@ class rpki::relying_party(
       section => 'rcynic',
       setting => 'trust-anchor-directory',
       value   => "/etc/rpki/trust-anchors",
-    }
+    } 
     ini_setting { 'rcynic authenticated':
       ensure => 'present',
       path   => '/etc/rcynic.conf',
       section => 'rcynic',
       setting => 'authenticated',
       value   => "$rcynicBase/authenticated",
-    }
+    } 
     ini_setting { 'rcynic unauthenticated':
       ensure => 'present',
       path   => '/etc/rcynic.conf',
       section => 'rcynic',
       setting => 'unauthenticated',
       value   => "$rcynicBase/unauthenticated",
-    }
+    } 
     ini_setting { 'rcynic xml-summary':
       ensure => 'present',
       path   => '/etc/rcynic.conf',
       section => 'rcynic',
       setting => 'xml-summary',
       value   => "$rcynicBase/rcynic.xml",
-    }
+    } 
   }
 }
