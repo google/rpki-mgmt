@@ -14,8 +14,9 @@
 #
 
 class rpki::publish(
-  $baseDir   = $::rpki::params::baseDir,
-  $logServer = $::rpki::params::logServer,
+  $moduleName, $modulePath,
+  $moduleDescription = "$moduleName",
+  $moduleSource = '',
   ) inherits ::rpki::params
 {
 
@@ -35,17 +36,27 @@ class rpki::publish(
     path   => '/etc/default/rsync',
     notify => Service["rsync"],
   } ->
-  file { ["$publicationBase", "$publicationBase/$publicationName",
-          "$publicationBase/$publicationName/publication",]:
-    ensure => directory,
-    owner  => 'root',
-    group  => 'root',
-    mode   => 0755,
-  } ->
   service { 'rsync':
     ensure => 'running',
     enable => 'true',
     require => Package['rsync'],
+  }
+
+  if $moduleSource != undef {
+    file { '/usr/local/bin/puppet_cleanup.sh':
+      source => "puppet:///modules/rpki/puppet_pull.sh",
+      ensure => 'file',
+      owner => 'root',
+      group => 'root',
+      mode => '0750',
+    } ->
+    cron { "pull data for $moduleName module":
+      command => "/usr/local/bin/puppet_pull.sh $moduleSource $modulePath >> /tmp/puppet_pull.log 2>&1",
+      ensure => 'present',
+      user => 'root',
+      minute => '0/5',
+      require => File['/usr/local/bin/puppet_pull.sh'],
+    }
   }
 
 }

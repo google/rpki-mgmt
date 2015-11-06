@@ -1,5 +1,6 @@
+#!/bin/sh
 #
-# Copyright 2014 Google Inc. All Rights Reserved.
+#Copyright 2014 Google Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,14 +15,22 @@
 # limitations under the License.
 #
 
-pid file        = /var/run/rsyncd.pid
-uid             = nobody
-gid             = nogroup
+date=$(/bin/date +%y%m%d_%H%M)
+src=${1}
+dest=${2}
 
-[<%= @moduleName %>]
-    use chroot          = no
-    read only           = yes
-    transfer logging    = yes
-    path                = <%= @modulePath %>
-    comment             = <%= @moduleDescription %>
+if [ -z "$src" ]; then
+    echo "$0: missing source"
+    exit 1
+fi
+if [ -z "$dest" ]; then
+    echo "$0: missing destination"
+    exit 1
+fi
 
+if [ ! -d "$dest" ]; then
+    echo "$0: destination directory does not exist"
+    exit 1
+fi
+
+/usr/bin/rsync -av $src $dest/$date/
