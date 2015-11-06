@@ -58,9 +58,9 @@ destination d_user { file("/var/log/user.log"); };
 destination d_uucp { file("/var/log/uucp.log"); };
 <% logServer.each do |server| -%>
 destination d_<%= server.gsub(/-/, '_') %> {
-  tcp("<%= server %>"
-      port(5140)
-    );
+  tcp("<%= server %>" port(<%= @logPort %>)
+      tls( ca_dir("/etc/syslog-ng/ca.d"))
+      );
 };
 <% end -%>
 
