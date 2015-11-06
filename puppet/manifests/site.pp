@@ -87,6 +87,12 @@ node "default" {
 class role::pub_server {
   include profile::client
   include rpki::publish
+
+  class { 'rpki::iptables':
+    rolePublicationServer => true,
+    sshRestrictSource => '10.71.0.0/16',
+    sshUnrestrictedPort => 122,
+  }
 }
 
 class role::log_server {
@@ -98,6 +104,11 @@ class role::log_server {
      puppetServer => $puppet_server,
   }
 
+  class { 'rpki::iptables':
+    roleLogServer => true,
+    sshRestrictSource => '10.71.0.0/16',
+    sshUnrestrictedPort => 122,
+  }
   class { 'rpki::log_server':
   }
 }
@@ -105,6 +116,17 @@ class role::log_server {
 class role::rpki_master {
   include profile::client
   include rpki::relying_party
+
+  class { 'rpki::iptables':
+
+    sshRestrictSource => '10.71.0.0/16',
+    sshUnrestrictedPort => 122,
+
+    # publishing rpki data
+    rolePublicationServer => true,
+    # but only to these clients
+    rsyncClients => [ 'rpki-pup-pub1' ],
+  }
 }
 
 # ---------------------------------------------------------------------

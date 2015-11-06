@@ -1,0 +1,55 @@
+*filter
+:INPUT ACCEPT [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+
+# Allows all loopback (lo0) traffic and drop all traffic to 127/8 that doesn't use lo0
+-A INPUT -i lo -j ACCEPT
+-A INPUT ! -i lo -d 127.0.0.0/8 -j REJECT
+-A INPUT -p icmp -m icmp --icmp-type 8 -j ACCEPT
+
+# Accepts all established inbound connections
+-A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+# ssh
+-A INPUT<% unless @sshRestrictSource.empty? -%> -s <%= @sshRestrictSource %><% end -%> -p tcp -m state --state NEW --dport <%= @sshPort %> -j ACCEPT
+<% unless @sshUnrestrictedPort.empty? -%>
+-A INPUT -p tcp -m state --state NEW --dport <%= @sshUnrestrictedPort %> -j ACCEPT
+<% end -%>
+
+<% if @roleLogServer == true -%>
+# syslog-ng
+-A INPUT -p tcp -m state --state NEW --dport <%= @logPort %> -j ACCEPT
+
+<% end -%>
+<% if @rolePublicationServer == true -%>
+# rsync
+<% if @rsyncClients.empty? -%>
+-A INPUT -p tcp -m state --state NEW --dport <%= @rsyncPort %> -j ACCEPT
+<% else -%>
+<% rsyncClients.each do |source| -%>
+-A INPUT -s <%= source %> -p tcp -m state --state NEW --dport <%= @rsyncPort %> -j ACCEPT
+<% end -%>
+<% end -%>
+
+<% end -%>
+<% if @rolePuppetServer == true -%>
+# puppet master
+-A INPUT -p tcp -m state --state NEW --dport <%= @puppetPort %> -j ACCEPT
+
+<% end -%>
+<% if @roleRPKI_CA == true -%>
+# rpki CA
+-A INPUT -p tcp -m state --state NEW --dport <%= @rpkiCAport %> -j ACCEPT
+
+<% end -%>
+<% if @roleRPKI_RP == true -%>
+# rpki-rtr
+-A INPUT -p tcp -m state --state NEW --dport <%= @rpkiRPport %> -j ACCEPT
+
+<% end -%>
+# Reject all other inbound - default deny unless explicitly allowed policy:
+-A INPUT -j REJECT
+-A FORWARD -j REJECT
+
+COMMIT

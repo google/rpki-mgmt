@@ -13,10 +13,7 @@
 # limitations under the License.
 #
 
-class rpki(
-  $baseDir   = $::rpki::params::baseDir,
-  $logServer = $::rpki::params::logServer,
-  
+class rpki::iptables(
   # ssh
   $sshRestrictSource = $::rpki::params::sshRestrictSource,
   $sshPort = $::rpki::params::sshPort,
@@ -29,6 +26,7 @@ class rpki(
   # publication server
   $rolePublicationServer = $::rpki::params::rolePublicationServer,
   $rsyncPort = $::rpki::params::rsyncPort,
+  $rsyncClients = $::rpki::params::rsyncClients,
   $publicationBase = $::rpki::params::publicationBase,
   $publicationName = $::rpki::params::publicationName,
 
@@ -46,23 +44,13 @@ class rpki(
   
   ) inherits ::rpki::params {
 
-  exec { 'apt-update':
-    command => '/usr/bin/apt-get update',
-    refreshonly => true,
+  file { '/etc/iptables/rules.v4':
+    content => template('rpki/iptables.v4.erb'),
+    ensure => 'present',
+    mode => '0644',
+    owner => 'root',
+    group => 'root',
+    notify => Service['iptables-persistent'],
   }
 
-  # do apt update before any package get installed
-  Exec["apt-update"] -> Package <| |>
-
-  anchor { 'rpki::begin': }
-  anchor { 'rpki::end': }
-  Anchor['rpki::begin'] ->
-    Class['rpki::install'] ->
-    Class['rpki::config'] ->
-    Class['rpki::service'] ->
-  Anchor['rpki::end']
-
-  include rpki::install
-  include rpki::config
-  include rpki::service
-}
+  }

@@ -27,5 +27,8 @@ class rpki::install(
   package { 'logrotate':
     ensure => 'installed',
   }
+  package { 'iptables-persistent':
+    ensure => 'installed',
+  }
 
 }

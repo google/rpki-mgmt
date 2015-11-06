@@ -26,6 +26,12 @@ class rpki::service(
     ensure => "running",
     enable => 'true',
     require => Package['syslog-ng'],
+
+  service { 'iptables-persistent':
+    ensure => "running",
+    enable => 'true',
+    require => Package['iptables-persistent'],
+    hasrestart => true,
   }
 
 }
