@@ -48,7 +48,7 @@ class rpki(
 
   exec { 'apt-update':
     command => '/usr/bin/apt-get update',
-    refreshonly => true,
+    #refreshonly => true,
   }
 
   # do apt update before any package get installed
