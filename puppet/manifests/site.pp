@@ -207,11 +207,12 @@ class profile::common {
   include rpki
 
   # setup syslog CA
-  require  file { '/etc/syslog-ng/ca.d/':
+  file { '/etc/syslog-ng/ca.d/':
     ensure => directory,
     owner => 'root',
     group => 'root',
     mode => '0644',
+    require => Package[ 'syslog-ng' ],
   }
 
   file { '/etc/syslog-ng/ca.pem':
