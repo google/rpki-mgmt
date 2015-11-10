@@ -28,22 +28,25 @@ class rpki::publish(
     mode => '0644',
     owner => 'root',
     group => 'root',
+    require => Package['rsync'],
   } ->
   file_line { 'enable rsync':
     ensure => present,
-    match  => '^#?RSYNC_ENABLE=',
+    match  => '^RSYNC_ENABLE=',
     line   => 'RSYNC_ENABLE=true',
     path   => '/etc/default/rsync',
+    require => Package['rsync'],
     notify => Service["rsync"],
   } ->
   service { 'rsync':
     ensure => 'running',
     enable => 'true',
     require => Package['rsync'],
+    hasrestart => true,
   }
 
-  if $moduleSource != undef {
-    file { '/usr/local/bin/puppet_cleanup.sh':
+  if $moduleSource != '' {
+    file { '/usr/local/bin/puppet_pull.sh':
       source => "puppet:///modules/rpki/puppet_pull.sh",
       ensure => 'file',
       owner => 'root',
@@ -54,7 +57,7 @@ class rpki::publish(
       command => "/usr/local/bin/puppet_pull.sh $moduleSource $modulePath >> /tmp/puppet_pull.log 2>&1",
       ensure => 'present',
       user => 'root',
-      minute => '0/5',
+      minute => '*/5',
       require => File['/usr/local/bin/puppet_pull.sh'],
     }
   }

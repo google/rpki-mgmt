@@ -15,6 +15,9 @@
 # limitations under the License.
 #
 
+TODAY=$(date +%y%m%d)
+LOG="/tmp/rsync-pull.$TODAY.log"
+
 date=$(/bin/date +%y%m%d_%H%M)
 src=${1}
 dest=${2}
@@ -33,4 +36,7 @@ if [ ! -d "$dest" ]; then
     exit 1
 fi
 
-/usr/bin/rsync -av $src $dest/$date/
+/usr/bin/rsync -av $src $dest/$date/ > $LOG 2>&1
+
+# delete empty dirs
+rmdir $dest/$date 2>/dev/null

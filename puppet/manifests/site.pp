@@ -49,6 +49,8 @@ $syslog_servers = [
 
 $puppet_server = 'rpki-pup-pup1.netsec'
 
+$ca_server = 'rpki-pup-ca1.netsec'
+
 # ---------------------------------------------------------------
 # Nodes
 # ---------------------------------------------------------------
@@ -117,7 +119,7 @@ class role::pub_server {
     moduleName => 'rpki',
     modulePath => '/srv/rsync/rpki',
     moduleDescription => "$::hostname RPKI Testbed Googlez",
-    moduleSource => 'rpki-01::rpki/',
+    moduleSource => "${ca_server}::rpki/",
     require => File['/srv/rsync/rpki'],
   }
 }
