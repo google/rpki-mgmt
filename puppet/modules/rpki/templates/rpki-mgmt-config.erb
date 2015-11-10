@@ -1,0 +1,22 @@
+# ------------------------------------------------------------
+# git_cron settings
+# ------------------------------------------------------------
+
+# Repositories to update.
+INFRA_REPO=<%= @gitCron_infraRepo %>
+
+# Puppet repositories to be cloned from the above.
+PUPPET_INFRA_DIR=<%= @gitCron_puppetInfraDir %>
+
+# Notification lockfile
+# NOTE: This depends on git submits local to your environment,
+#       monitoring changes on github is less clean, so a pull on every
+#       cron run will be made instead of 'just when updates happen'.
+#       The git post-recieve hook at the main repository would:
+#       date '+%Y-%m-%h %H:%M:%S' > /tmp/git_cron.notify
+#       and the GIT_INFRA_NOTIFY would be /tmp/git_cron.notify
+#       not /var/log/syslog
+REMOVE_NOTIFY=<%= @gitCron_removeNotify %>
+GIT_INFRA_NOTIFY=<%= @gitCron_infraNotify %>
+
+INFRA_VERBOSE=<%= @gitCron_infraVerbose %>

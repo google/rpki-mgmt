@@ -153,7 +153,11 @@ class role::puppet_master {
     sshUnrestrictedPort => 122,
   }
 
-  include rpki::puppet_master
+  class { 'rpki::puppet_master':
+    gitCron_infraRepo => '/root/rpki-mgmt.git',
+    gitCron_infraNotify => '/tmp/gitCron',
+    gitCron_infraVerbose => 'y',
+  }
 }
 
 # ------------------------------------

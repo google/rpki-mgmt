@@ -14,22 +14,36 @@
 #
 
 class rpki::puppet_master(
-)
+  $gitCron_infraRepo = $::rpki::params::gitCron_infraRepo,
+  $gitCron_infraNotify = $::rpki::params::gitCron_infraNotify,
+  $gitCron_infraVerbose = $::rpki::params::gitCron_infraVerbose,
+)  inherits ::rpki::params
 {
-  package { ['git', 'puppetmaster']:
+  package { ['git', 'puppetmaster', 'puppet-lint']:
     ensure => 'installed',
-  } ->
+  }
   file { "/usr/local/sbin/git_cron.sh":
     source  => "puppet:///modules/rpki/git_cron.sh",
     ensure => 'file',
     owner   => 'root',
+    group   => 'root',
     mode    => 0755,
-  } ->
+    require => Package['puppetmaster'],
+  }
   cron { git_sync:
     command => '/usr/local/sbin/git_cron.sh > /tmp/git_cron.log 2>&1',
     ensure => 'present',
     user => 'root',
-    require => File['/usr/local/sbin/git_cron.sh'],
+    require => [ File['/usr/local/sbin/git_cron.sh'],
+                 File['/etc/default/rpki-mgmt'], ],
+  }
+
+  file { '/etc/default/rpki-mgmt':
+    content => template('rpki/rpki-mgmt-config.erb'),
+    ensure => 'present',
+    mode => 0644,
+    owner => root,
+    group => root,
   }
 
   file {
@@ -49,7 +63,7 @@ class rpki::puppet_master(
       mode => 0750,
   } ->
   ini_setting { 'puppet mount private host files':
-    ensure => 'present',
+    ensure => present,
     path   => '/etc/puppet/fileserver.conf',
     section => 'private',
     setting => 'path',
@@ -57,12 +71,19 @@ class rpki::puppet_master(
     value   => "/etc/puppet/mounts/private/%H",
   }
   ini_setting { 'puppet mount public files':
-    ensure => 'present',
+    ensure => present,
     path   => '/etc/puppet/fileserver.conf',
     section => 'public',
     setting => 'path',
     key_val_separator => ' ',
     value   => "/etc/puppet/mounts/public",
+  }
+  ini_setting { 'remove default files config':
+    ensure => absent,
+    path   => '/etc/puppet/fileserver.conf',
+    section => 'files',
+    setting => 'path',
+    key_val_separator => ' ',
   }
 
 }

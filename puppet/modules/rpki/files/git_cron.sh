@@ -25,25 +25,21 @@
 # to be sure they are the same between the repo and the system
 # location.
 #
-LOG=$(mktemp -t tmp.XXXX.$$)
+set -x
+# xxx: /etc/default is a debianism
+if [ ! -f /etc/default/rpki-mgmt ] ; then
+  echo 'No rpki-mgmt configuration file, exiting.'
+  exit 1
+fi
 
-# Repositories to update.
-INFRA_REPO=/srv/repo/rpki-mgmt
+. /etc/default/rpki-mgmt
 
-# Puppet repositories to be cloned from the above.
-PUPPET_DIR=/etc/puppet/modules/git/files
-PUPPET_INFRA_DIR=${PUPPET_DIR}/infra
+if [ -z ${INFRA_REPO} ]; then
+    echo 'INFRA_REPO not configured, exiting.'
+    exit 1
+fi
 
-# Notification lockfile
-# NOTE: This depends on git submits local to your environment,
-#       monitoring changes on github is less clean, so a pull on every
-#       cron run will be made instead of 'just when updates happen'.
-#       The git post-recieve hook at the main repository would:
-#       date '+%Y-%m-%h %H:%M:%S' > /tmp/git_cron.notify
-#       and the GIT_INFRA_NOTIFY would be /tmp/git_cron.notify
-#       not /var/log/syslog
-REMOVE_NOTIFY=
-GIT_INFRA_NOTIFY=/var/log/syslog
+LOG=$(mktemp -t tmp.rpki-mgmt.XXXX.$$)
 
 # Binaries
 GIT=/usr/bin/git
@@ -65,12 +61,20 @@ else
     cwd=${CWD}
     cd ${INFRA_REPO}
       # Pull the repository to the temporary storage location.
-      ${GIT} pull > /tmp/git-infra-pull.log 2>&1
+      if [ -z ${INFRA_VERBOSE} ]; then
+        ${GIT} pull > /tmp/git_pull.log 2>&1
+      else
+        ${GIT} pull 2>&1 | tee /tmp/git_pull.log
+      fi
       cd ${cwd}
 
       # Use rsync to pull the repository into the puppet directory,
       # save a log of changes that can be sorted for important actions.
-      ${RSYNC} ${RSYNC_OPTS} ${RSYNC_EXC} ${INFRA_REPO}/ ${PUPPET_INFRA_DIR} > ${LOG} 2>&1
+      if [ -z ${INFRA_VERBOSE} ]; then
+        ${RSYNC} ${RSYNC_OPTS} ${RSYNC_EXC} ${INFRA_REPO}/ ${PUPPET_INFRA_DIR} > ${LOG} 2>&1
+      else
+        ${RSYNC} ${RSYNC_OPTS} ${RSYNC_EXC} ${INFRA_REPO}/ ${PUPPET_INFRA_DIR} 2>&1 | tee ${LOG}
+      fi
 
       # if the log has \.pp or \.erb files, move these to the final location.
       $(/bin/egrep '\.(pp|erb)$' ${LOG} > /dev/null)
