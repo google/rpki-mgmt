@@ -15,6 +15,25 @@
 
 class rpki::log_server() inherits ::rpki::params
 {
+  $sslKey = "/etc/syslog-ng/ca.d/$fqdn.key"
+  $sslCert = "/etc/syslog-ng/ca.d/$fqdn.pem"
+
+  file { "$sslKey":
+    ensure => present,
+    source => "/var/lib/puppet/ssl/private_keys/$fqdn.pem",
+    owner => root,
+    group => root,
+    mode => 0600,
+    require => File['/etc/syslog-ng/ca.d/'],
+  }
+  file { "$sslCert":
+    ensure => present,
+    source => "/var/lib/puppet/ssl/certs/$fqdn.pem",
+    owner => root,
+    group => root,
+    mode => 0600,
+    require => File['/etc/syslog-ng/ca.d/'],
+  }
 
   file { '/etc/syslog-ng/syslog-ng.conf':
     content => template('rpki/syslog-server.conf.erb'),
@@ -22,6 +41,7 @@ class rpki::log_server() inherits ::rpki::params
     mode => '0644',
     owner => 'root',
     group => 'root',
+    require => [ File["$sslKey"], File["$sslCert"] ],
     notify => Service['syslog-ng'],
   }
 }

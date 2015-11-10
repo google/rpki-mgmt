@@ -215,7 +215,7 @@ class profile::common {
     require => Package[ 'syslog-ng' ],
   }
 
-  file { '/etc/syslog-ng/ca.pem':
+  file { '/etc/syslog-ng/ca.d/ca.pem':
     ensure => present,
     source => '/var/lib/puppet/ssl/certs/ca.pem',
     require => File['/etc/syslog-ng/ca.d/'],
