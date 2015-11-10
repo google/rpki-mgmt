@@ -28,7 +28,7 @@ class rpki::params () {
     $puppetPort = 8140
     # -- for git_cron script
     $gitCron_infraRepo = '/srv/repo/rpki-mgmt'
-    $gitCron_puppetInfraDir = '/etc/puppet/modules/git/files/infra'
+    $gitCron_puppetInfraDir = '/etc/puppet'
     $gitCron_removeNotify = ''
     $gitCron_infraNotify = '/var/log/syslog'
     $gitCron_infraVerbose = ''

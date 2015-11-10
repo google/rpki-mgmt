@@ -53,9 +53,6 @@ class rpki::puppet_master(
      '/etc/puppet/mounts/private', '/etc/puppet/mounts/public',
      # repo for pulling config
      '/srv/repo', '/srv/repo/rpki-mgmt',
-     # puppet server modules
-     '/etc/puppet/modules/git', '/etc/puppet/modules/git/files',
-     '/etc/puppet/modules/git/files/infra',
      ] :
       ensure => 'directory',
       owner => 'root',

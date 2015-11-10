@@ -25,7 +25,7 @@
 # to be sure they are the same between the repo and the system
 # location.
 #
-set -x
+
 # xxx: /etc/default is a debianism
 if [ ! -f /etc/default/rpki-mgmt ] ; then
   echo 'No rpki-mgmt configuration file, exiting.'
@@ -39,9 +39,9 @@ if [ -z ${INFRA_REPO} ]; then
     exit 1
 fi
 
-LOG=$(mktemp -t tmp.rpki-mgmt.XXXX.$$)
+TODAY=$(date +%y%m%d)
+LOG="/tmp/rpki-mgmt.$TODAY.log"
 
-# Binaries
 GIT=/usr/bin/git
 PUPPET=/usr/bin/puppet
 RSYNC=/usr/bin/rsync
@@ -68,37 +68,15 @@ else
       fi
       cd ${cwd}
 
+      date >> ${LOG} 2>&1
       # Use rsync to pull the repository into the puppet directory,
       # save a log of changes that can be sorted for important actions.
       if [ -z ${INFRA_VERBOSE} ]; then
-        ${RSYNC} ${RSYNC_OPTS} ${RSYNC_EXC} ${INFRA_REPO}/ ${PUPPET_INFRA_DIR} > ${LOG} 2>&1
+        ${RSYNC} ${RSYNC_OPTS} ${RSYNC_EXC} ${INFRA_REPO}/puppet/modules/rpki/ ${PUPPET_INFRA_DIR}/modules/rpki/ >> ${LOG} 2>&1
+        ${RSYNC} ${RSYNC_OPTS} ${RSYNC_EXC} ${INFRA_REPO}/puppet/manifests/site.pp ${PUPPET_INFRA_DIR}/manifests/site.pp >> ${LOG} 2>&1
       else
-        ${RSYNC} ${RSYNC_OPTS} ${RSYNC_EXC} ${INFRA_REPO}/ ${PUPPET_INFRA_DIR} 2>&1 | tee ${LOG}
-      fi
-
-      # if the log has \.pp or \.erb files, move these to the final location.
-      $(/bin/egrep '\.(pp|erb)$' ${LOG} > /dev/null)
-      if [ $?  -eq 0 ]; then
-        cd ${PUPPET_INFRA_DIR}
-        echo 'Moving puppet recipe stuff from git-repo to puppet location.'
-        for file in $(/bin/egrep '\.(pp|erb)$' ${LOG}); do
-          echo "Potentially moving: ${file}"
-          newfile=$(echo ${file} | sed 's/^puppet/\/etc\/puppet/')
-          # This should have worked, it's not reliable.
-          # $(${PUPPET} apply --noop ${file})  > /dev/null 2>&1
-          # if [ $? -eq 0 ]; then
-          #   echo "Copying: ${file} to ${newfile}"
-          #   cp ${file} ${newfile}
-          # else
-          #   echo "Not copying recipe, syntax failures occured."
-          # fi
-          echo "Copying: ${file} to ${newfile}"
-          newdir=$(dirname ${newfile})
-          mkdir -p ${newdir}
-          cp ${file} ${newfile}
-        done
-      else
-        echo "No pp files to relocate."
+        ${RSYNC} ${RSYNC_OPTS} ${RSYNC_EXC} ${INFRA_REPO}/puppet/modules/rpki/ ${PUPPET_INFRA_DIR}/modules/rpki/ 2>&1 | tee -a ${LOG}
+        ${RSYNC} ${RSYNC_OPTS} ${RSYNC_EXC} ${INFRA_REPO}/puppet/manifests/site.pp ${PUPPET_INFRA_DIR}/manifests/site.pp 2>&1 | tee -a ${LOG}
       fi
     fi
     if [ ! -z ${REMOVE_NOTIFY} ]; then

@@ -155,7 +155,7 @@ class role::puppet_master {
 
   class { 'rpki::puppet_master':
     gitCron_infraRepo => '/root/rpki-mgmt.git',
-    gitCron_infraNotify => '/tmp/gitCron',
+    gitCron_infraNotify => '/tmp/git_cron.run',
     gitCron_infraVerbose => 'y',
   }
 }
