@@ -32,6 +32,13 @@ class rpki::puppet_config(
     setting => 'server',
     value   => "$puppetServer",
   } ->
+  ini_setting { 'puppet plugin sync':
+    ensure => 'present',
+    path   => '/etc/puppet/puppet.conf',
+    section => 'main',
+    setting => 'pluginsync',
+    value   => 'true',
+  } ->
   file { '/usr/local/bin/puppet_cleanup.sh':
     source => "puppet:///modules/rpki/puppet_cleanup.sh",
     ensure => 'file',
