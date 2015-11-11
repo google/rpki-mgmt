@@ -46,13 +46,21 @@ class rpki(
   
   ) inherits ::rpki::params {
 
-  exec { 'apt-update':
-    command => '/usr/bin/apt-get update',
-    #refreshonly => true,
-  }
-
+  # This will run apt-update before any package is installed, which
+  # is needed when a new repo is added.
+  #
+  # Unfortunately, it seems to be run every time puppet runs, so
+  # that needs to be figured out at come point
+  #
+  # currently disabled, since we're not adding the rpki.net repo (yet)
+  #
+  #exec { 'apt-update':
+  #  command => '/usr/bin/apt-get update',
+  #  #refreshonly => true,
+  #}
+  #
   # do apt update before any package get installed
-  Exec["apt-update"] -> Package <| |>
+  #Exec["apt-update"] -> Package <| |>
 
   anchor { 'rpki::begin': }
   anchor { 'rpki::end': }
