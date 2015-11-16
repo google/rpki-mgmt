@@ -162,6 +162,12 @@ class role::puppet_master {
     gitCron_infraRepo => '/root/rpki-mgmt.git',
     gitCron_infraNotify => '/tmp/git_cron.run',
     gitCron_infraVerbose => 'y',
+  } ->
+  service { 'puppetmaster':
+    ensure => 'running',
+    enable => 'true',
+    require => Package['puppetmaster'],
+    hasrestart => true,
   }
 }
 
