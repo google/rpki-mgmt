@@ -39,6 +39,8 @@
 # Globals
 # ---------------------------------------------------------------
 
+$rsync_module_description = 'RPKI Testbed Googlez'
+
 # syslog servers that all clients will use 
 $syslog_servers = [
                    'log-1.example.com',
@@ -119,7 +121,7 @@ class role::pub_server {
   class { 'rpki::publish':
     moduleName => 'rpki',
     modulePath => '/srv/rsync/rpki',
-    moduleDescription => "$::hostname RPKI Testbed Googlez",
+    moduleDescription => "$::hostname $rsync_module_description",
     moduleSource => "${ca_server}::rpki/",
     require => File['/srv/rsync/rpki'],
   }
@@ -187,7 +189,7 @@ class role::rpki_master {
   class { 'rpki::publish':
     moduleName => 'rpki',
     modulePath => '/usr/share/rpki/publication',
-    moduleDescription => "$::hostname RPKI Testbed Googlez",
+    moduleDescription => "$::hostname $rsync_module_description",
     require => File['/usr/share/rpki/publication'],
   }
 
