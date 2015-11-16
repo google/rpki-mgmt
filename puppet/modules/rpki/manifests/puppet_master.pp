@@ -48,15 +48,23 @@ class rpki::puppet_master(
 
   file {
     [
-     # mount directories for fileserver
-     '/etc/puppet/mounts',
-     '/etc/puppet/mounts/private', '/etc/puppet/mounts/public',
      # repo for pulling config
      '/srv/repo', '/srv/repo/rpki-mgmt',
      ] :
       ensure => 'directory',
       owner => 'root',
       group => 'root',
+      mode => 0750,
+  } ->
+  file {
+    [
+     # mount directories for fileserver
+     '/etc/puppet/mounts',
+     '/etc/puppet/mounts/private', '/etc/puppet/mounts/public',
+     ] :
+      ensure => 'directory',
+      owner => 'puppet',
+      group => 'puppet',
       mode => 0750,
   } ->
   ini_setting { 'puppet mount private host files':
