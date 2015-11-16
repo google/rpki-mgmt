@@ -41,15 +41,20 @@
 
 # syslog servers that all clients will use 
 $syslog_servers = [
-                   'rpki-syslog-aspac',
-                   'rpki-syslog-emea',
-                   'rpki-syslog-na',
-                   'rpki-pup-log1',
+                   'log-1.example.com',
                   ]
 
-$puppet_server = 'rpki-pup-pup1.netsec'
+$puppet_server = 'puppet.example.com'
 
-$ca_server = 'rpki-pup-ca1.netsec'
+$ca_server = 'ca.example.com'
+
+# publication servers
+$publication_servers = [
+                        'publish-1.example.com',
+                        ]
+
+# ip range for ssh access on port 22
+$ssh_client_range = '0.0.0.0/0'
 
 # ---------------------------------------------------------------
 # Nodes
@@ -57,29 +62,26 @@ $ca_server = 'rpki-pup-ca1.netsec'
 
 # ------------------------------------
 # syslog servers
-node 'rpki-syslog-emea', 'rpki-syslog-na', 'rpki-pup-log1', 'rstory-rpki-deb7'
+node 'log-1.example.com'
 {
   include role::log_server
 }
 
 # ------------------------------------
 # publication nodes
-node 'rpki-aspac-01', 'rpki-aspac-02', 'rpki-aspac-03',
-     'rpki-emea-01', 'rpki-emea-02',
-     'rpki-us-01', 'rpki-us-02', 'rpki-us-03',
-     'rpki-pup-pub1'
+node 'publish-1.example.com'
 {
   include role::pub_server
 }
 
 # ------------------------------------
-node 'rpki-pup-ca1', 'deb7-tmpl-lab'
+node 'ca.example.com'
 {
   include role::rpki_master
 }
 
 # ------------------------------------
-node 'rpki-pup-pup1'
+node 'puppet.example.com'
 {
   include role::puppet_master
 }
@@ -104,8 +106,7 @@ class role::pub_server {
 
   class { 'rpki::iptables':
     rolePublicationServer => true,
-    sshRestrictSource => '10.71.0.0/16',
-    sshUnrestrictedPort => 122,
+    sshRestrictSource => $ssh_client_range,
   }
 
   # publish rpki data for the world
@@ -137,8 +138,7 @@ class role::log_server {
 
   class { 'rpki::iptables':
     roleLogServer => true,
-    sshRestrictSource => '10.71.0.0/16',
-    sshUnrestrictedPort => 122,
+    sshRestrictSource => $ssh_client_range,
   }
   class { 'rpki::log_server':
   }
@@ -151,8 +151,7 @@ class role::puppet_master {
 
   class { 'rpki::iptables':
     rolePuppetServer => true,
-    sshRestrictSource => '10.71.0.0/16',
-    sshUnrestrictedPort => 122,
+    sshRestrictSource => $ssh_client_range,
   }
 
   class { 'rpki::puppet_master':
@@ -169,13 +168,12 @@ class role::rpki_master {
 
   class { 'rpki::iptables':
 
-    sshRestrictSource => '10.71.0.0/16',
-    sshUnrestrictedPort => 122,
+    sshRestrictSource => $ssh_client_range,
 
     # publishing rpki data
     rolePublicationServer => true,
     # but only to these clients
-    rsyncClients => [ 'rpki-pup-pub1' ],
+    rsyncClients => $publication_servers,
   }
 
   # publish rpki data for publication servers
