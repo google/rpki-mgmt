@@ -172,6 +172,9 @@ class role::rpki_master {
 
     sshRestrictSource => $ssh_client_range,
 
+    # certificate master
+    roleRPKI_CA => true,
+
     # publishing rpki data
     rolePublicationServer => true,
     # but only to these clients
