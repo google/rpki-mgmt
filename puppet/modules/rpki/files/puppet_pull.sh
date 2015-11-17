@@ -36,6 +36,7 @@ if [ ! -d "$dest" ]; then
     exit 1
 fi
 
+(( delay = %RANDOM % 60 ))
 /usr/bin/rsync -av $src $dest/$date/ > $LOG 2>&1
 
 # delete empty dirs
