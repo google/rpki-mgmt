@@ -48,6 +48,8 @@ $syslog_servers = [
 
 $puppet_server = 'puppet.example.com'
 
+# where do publication servers get their data?
+# TODO: handle multiple sources, distribute amongst pub servers
 $ca_server = 'ca.example.com'
 
 # publication servers
