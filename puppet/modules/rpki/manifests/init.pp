@@ -74,3 +74,168 @@ class rpki(
   include rpki::config
   include rpki::service
 }
+
+# ---------------------------------------------------------------------
+# Roles
+# ---------------------------------------------------------------------
+
+class rpki::role::pub_server {
+
+  include rpki::profile::client
+
+  class { 'rpki::iptables':
+    rolePublicationServer => true,
+    sshRestrictSource => $ssh_client_range,
+  }
+
+  # publish rpki data for the world
+  file { ['/srv/rsync/', '/srv/rsync/rpki/']:
+    ensure => directory,
+    owner  => 'root',
+    group  => 'root',
+    mode   => 0755,
+  }
+  class { 'rpki::publish':
+    moduleName => 'rpki',
+    modulePath => '/srv/rsync/rpki',
+    moduleDescription => "$::hostname $rsync_module_description",
+    moduleSource => "${ca_server}::rpki/",
+    require => File['/srv/rsync/rpki'],
+  }
+}
+
+# ------------------------------------
+
+class rpki::role::log_server {
+
+  include rpki::profile::common
+
+  # configure puppet server
+  class { 'rpki::puppet_config':
+     puppetServer => $puppet_server,
+  }
+
+  class { 'rpki::iptables':
+    roleLogServer => true,
+    sshRestrictSource => $ssh_client_range,
+  }
+  class { 'rpki::log_server':
+  }
+}
+
+# ------------------------------------
+
+class rpki::role::puppet_master {
+  include rpki::profile::client
+
+  class { 'rpki::iptables':
+    rolePuppetServer => true,
+    sshRestrictSource => $ssh_client_range,
+  }
+
+  class { 'rpki::puppet_master':
+    gitCron_infraRepo => '/root/rpki-mgmt.git',
+    gitCron_infraNotify => '/tmp/git_cron.run',
+    gitCron_infraVerbose => 'y',
+  } ->
+  service { 'puppetmaster':
+    ensure => 'running',
+    enable => 'true',
+    require => Package['puppetmaster'],
+    hasrestart => true,
+  }
+}
+
+# ------------------------------------
+
+class rpki::role::rpki_master {
+  include rpki::profile::client
+
+  class { 'rpki::iptables':
+
+    sshRestrictSource => $ssh_client_range,
+
+    # certificate master
+    roleRPKI_CA => true,
+
+    # publishing rpki data
+    rolePublicationServer => true,
+    # but only to these clients
+    rsyncClients => $publication_servers,
+  }
+
+  # publish rpki data for publication servers
+  file { ['/usr/share/rpki', '/usr/share/rpki/publication']:
+    ensure => directory,
+    owner  => 'root',
+    group  => 'root',
+    mode   => 0755,
+  }
+
+  class { 'rpki::publish':
+    moduleName => 'rpki',
+    modulePath => '/usr/share/rpki/publication',
+    moduleDescription => "$::hostname $rsync_module_description",
+    require => File['/usr/share/rpki/publication'],
+  }
+
+  include rpki::ca
+}
+
+# ---------------------------------------------------------------------
+# Profiles
+# ---------------------------------------------------------------------
+class rpki::profile::common {
+  include stdlib
+
+  # set up users, etc
+  class { "common_config": }
+
+  # install/config common packages
+  include rpki
+
+  # setup syslog CA
+  file { '/etc/syslog-ng/ca.d/':
+    ensure => directory,
+    owner => 'root',
+    group => 'root',
+    mode => '0644',
+    require => Package[ 'syslog-ng' ],
+  }
+
+  file { '/etc/syslog-ng/ca.d/ca.pem':
+    ensure => present,
+    source => '/var/lib/puppet/ssl/certs/ca.pem',
+    require => File['/etc/syslog-ng/ca.d/'],
+  }
+
+  $caHash_line = generate ("/usr/bin/openssl",  "x509", "-noout", "-hash", "-in", "/var/lib/puppet/ssl/certs/ca.pem")
+  $caHash = chomp($caHash_line)
+
+  file { "/etc/syslog-ng/ca.d/$caHash.0":
+    ensure => link,
+    target => '/etc/syslog-ng/ca.d/ca.pem',
+    require => File['/etc/syslog-ng/ca.d/'],
+    notify => Service['syslog-ng'],
+  }
+
+}
+
+# ------------------------------------
+
+class rpki::profile::client(
+  $logServer = $syslog_servers,
+  $puppetServer = $puppet_server,
+) {
+  include rpki::profile::common
+
+  # configure puppet server
+  class { "rpki::puppet_config":
+     puppetServer => $puppetServer,
+  }
+
+  # set up log destination
+  class { "rpki::log_client":
+    logServer => $logServer,
+  }
+}
