@@ -104,7 +104,20 @@ node "default" {
 # Classes
 # ---------------------------------------------------------------------
 
+#
+# All roles include common_config. This is the place to define resources
+# which should be installed and configured on every machine.
+#
 class common_config {
+
+  #
+  # extra packages for all nodes
+  #
+  package { [ 'vim-nox', 'sudo', 'tcpdump' ]:
+    ensure => latest,
+  }
+
+  #
   # --- Users ---
   #
   # morrowc
