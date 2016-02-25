@@ -86,6 +86,7 @@ class rpki::role::pub_server {
   class { 'rpki::iptables':
     rolePublicationServer => true,
     sshRestrictSource => $ssh_client_range,
+    sshUnrestrictedPort => $ssh_unrestricted_port,
   }
 
   # publish rpki data for the world
@@ -118,6 +119,7 @@ class rpki::role::log_server {
   class { 'rpki::iptables':
     roleLogServer => true,
     sshRestrictSource => $ssh_client_range,
+    sshUnrestrictedPort => $ssh_unrestricted_port,
   }
   class { 'rpki::log_server':
   }
@@ -131,6 +133,7 @@ class rpki::role::puppet_master {
   class { 'rpki::iptables':
     rolePuppetServer => true,
     sshRestrictSource => $ssh_client_range,
+    sshUnrestrictedPort => $ssh_unrestricted_port,
   }
 
   class { 'rpki::puppet_master':
@@ -154,6 +157,7 @@ class rpki::role::rpki_master {
   class { 'rpki::iptables':
 
     sshRestrictSource => $ssh_client_range,
+    sshUnrestrictedPort => $ssh_unrestricted_port,
 
     # certificate master
     roleRPKI_CA => true,

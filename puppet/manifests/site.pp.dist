@@ -60,6 +60,12 @@ $publication_servers = [
 # ip range for ssh access on port 22
 $ssh_client_range = '0.0.0.0/0'
 
+# optional port for ssh access without client ip restrictions
+# Default is '', which means no rule will be added.
+# (technically it just adds a TCP rule for the port, so it could be
+#  any service, not just ssh.)
+$ssh_unrestricted_port = ''
+
 # ---------------------------------------------------------------
 # Nodes
 # ---------------------------------------------------------------
