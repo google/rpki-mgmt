@@ -12,26 +12,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class apt {
-  package { 'puppet':
-    ensure => 'installed',
-  }
-  package { 'openssh-server':
-    ensure => 'installed',
-  }
-  package { 'rsyslog':
-    ensure => 'purged',
-  }
-  package { 'syslog-ng':
-    ensure => 'installed',
-  }
+
+class rpki::publish(
+  $baseDir   = $::rpki::params::baseDir,
+  $logServer = $::rpki::params::logServer,
+  ) inherits ::rpki::params
+{
+
   package { 'rsync':
     ensure => 'installed',
+  } ->
+  file { '/etc/rsyncd.conf.templ':
+    source => "puppet:///modules/rpki/rsyncd.conf",
+    ensure => 'file',
+    mode => '0644',
+    owner => 'root',
+    group => 'root',
+  } ->
+  file_line { 'enable rsync':
+    ensure => present,
+    match  => '^#?RSYNC_ENABLE=',
+    line   => 'RSYNC_ENABLE=true',
+    path   => '/etc/default/rsync',
+    notify => Service["rsync"],
+  } ->
+  service { 'rsync':
+    ensure => 'running',
+    enable => 'true',
+    require => Package['rsync'],
   }
-  package { 'logrotate':
-    ensure => 'installed',
-  }
-  package { 'git':
-    ensure => 'installed',
-  }
+
 }

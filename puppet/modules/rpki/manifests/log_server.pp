@@ -13,23 +13,9 @@
 # limitations under the License.
 #
 
-class services {
-  service { 'puppet':
-    ensure => "running",
-    enable => 'true',
-    require => Package['puppet'],
-  }
-  service { 'syslog-ng':
-    ensure => "running",
-    enable => 'true',
-    require => Package['syslog-ng'],
-  }
-  # If this is a publication server, make sure rsync is running.
-  if $rpki_pub_servers[$hostname] == 1 {
-    service { 'rsync':
-      ensure => 'running',
-      enable => 'true',
-      require => Package['rsync'],
-    }
-  }
-}
+class rpki::log_server(
+  $baseDir   = $::rpki::params::baseDir,
+  $logServer = $::rpki::params::logServer,
+  ) inherits ::rpki::params {
+
+ }

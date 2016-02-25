@@ -13,21 +13,18 @@
 # limitations under the License.
 #
 
-class cron {
-  # Run puppet cleanup, make sure puppet is not hung, restart if it has.
-  cron { puppet_cleanup:
-    command => "/usr/local/bin/puppet_cleanup.sh >> /tmp/puppet_cleanup.log 2>&1",
-    ensure => 'present',
-    user => 'root',
-    minute => 0,
+class rpki::log_client(
+  $baseDir   = $::rpki::params::baseDir,
+  $logServer = $::rpki::params::logServer,
+  ) inherits ::rpki::params {
+
+  file { '/etc/syslog-ng/syslog-ng.conf':
+    source => "$::puppet_files_infra/puppet/files/syslog-client.conf",
+    ensure => 'file',
+    mode => '0644',
+    owner => 'root',
+    group => 'root',
+    notify => Service['syslog-ng'],
   }
-  #
-  # Host-specific cronjobs.
-  if $fqdn == 'rpki-puppet.c.rpki-pilot.internal' {
-    cron { git_sync:
-      command => '/usr/local/sbin/git_cron.sh > /tmp/git_cron.log 2>&1',
-      ensure => 'present',
-      user => 'root',
-    }
-  }
-}
+
+ }

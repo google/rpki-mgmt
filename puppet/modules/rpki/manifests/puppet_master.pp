@@ -13,9 +13,23 @@
 # limitations under the License.
 #
 
-class scripts {
-  file { '/usr/local/bin/puppet_cleanup.sh':
-    source => "$::puppet_files_infra/puppet/files/puppet_cleanup.sh",
-    mode => '0755',
+define rpki::puppet_master(
+)
+{
+  package { 'git':
+    ensure => 'installed',
+  } ->
+  file { "/usr/local/sbin/git_cron.sh":
+    source  => "puppet:///modules/rpki/git_cron.sh",
+    ensure => 'file',
+    owner   => 'root',
+    mode    => 0755,
+  } ->
+  cron { git_sync:
+    command => '/usr/local/sbin/git_cron.sh > /tmp/git_cron.log 2>&1',
+    ensure => 'present',
+    user => 'root',
+    require => File['/usr/local/sbin/git_cron.sh'],
   }
+
 }
