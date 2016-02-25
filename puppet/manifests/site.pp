@@ -39,4 +39,18 @@ node "default" {
   include scripts
   include services
   include users
+  # --- Users ---
+  #
+  # morrowc
+  #
+  user {'morrowc':
+    ensure => 'present',
+  }
+
+  # rstory
+  #
+  user {'rstory':
+    ensure => 'present',
+    shell => '/bin/bash',
+  }
 }

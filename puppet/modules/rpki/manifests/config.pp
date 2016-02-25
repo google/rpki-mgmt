@@ -22,19 +22,4 @@ class rpki::config(
     require => Package['syslog-ng'],
   }
 
-  # --- Users ---
-  #
-  # morrowc
-  #
-  user {'morrowc':
-    ensure => 'present',
-  }
-
-  # rstory
-  #
-  user {'rstory':
-    ensure => 'present',
-    shell => '/bin/bash',
-  }
-
 }

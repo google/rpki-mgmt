@@ -35,30 +35,4 @@ define rpki::common::install(
     ensure => 'installed',
   }
 
-    # morrowc
-  #
-  user {'morrowc':
-    ensure => 'present',
-    # morrowc's ssh content is managed by GCE
-  }
-
-  # rstory
-  #
-  user {'rstory':
-    ensure => 'present',
-    shell => '/bin/bash',
-  }
-  file {'/home/rstory':
-    ensure => 'directory',
-    owner => 'rstory',
-    group => 'rstory',
-    mode => 0700,
-  }
-  file {'/home/rstory/.ssh':
-    ensure => 'directory',
-    owner => 'rstory',
-    group => 'rstory',
-    mode => 0700,
-  }
-
 }
