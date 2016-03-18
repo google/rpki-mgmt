@@ -13,40 +13,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+== Summary ==
+
 Puppet configuration to support an RPKI publication server and associated
 infrastructure.
 
 This presumes there are multiple 'publication servers' ready to accept
 rsync connections (rcynic connections) from the rest of the RPKI participants,
-and a single server storing the private key data away from public eyes.
+and a single server storing the private key data away from public eyes. A
+puppet service contains configuration, and there are one or my syslog
+servers.
 
-The basic systems deployed for this example are:
+== RPKI setup ==
 
-rpki-01           - master rpki server
-rpki-02           - master rpki server (backup)
-rpki-aspac-01     - publication server AP
-rpki-aspac-02     - publication server AP
-rpki-aspac-03     - publication server AP
-rpki-emea-01      - publication server EU
-rpki-emea-02      - publication server EU
-rpki-puppet       - puppet-master server
-rpki-syslog-emea  - syslog collection server EU
-rpki-syslog-na    - syslog collection server EU
-rpki-us-01        - publication server US
-rpki-us-02        - publication server US
-rpki-us-03        - publication server US
+The RPKI services are managed by this configuration/system are offered using
+the Dragon Research Labs reference platform. This puppet configurationes does
+not (yet) install and manage the RPKI.net software. It must be installed prior
+to deploying this puppet configuration. A 'get going in 10 minutes' script is
+available here:
 
-Your deployment maybe more widespread than this or less so, the framework
-should be able to expand/contract to meet your needs. The RPKI services are
-managed by this configuration/system are offered using the Dragon Research Labs
-reference platform:
   <http://rpki.net/wiki/doc/RPKI/doc/RPKI/Installation/UbuntuRP>
-(a 'get going in 10 minutes' script)
 
 The basic rpkid services, data locations and processes are:
-rpkid - writes stuff to mysql, and to disk for pubd
-pubd - can offer services to clients
-rsyncd (publication point) - is only /usr/share/rpki/publication's content
+
+- rpkid - writes stuff to mysql, and to disk for pubd
+- pubd - can offer services to clients
+- rsyncd (publication point) - shares rpki/publication's content
 
 This configuration will push all publication content to rsyncd servers, run
 a script from cron to wrangle the publication data out to all publication
@@ -55,3 +47,30 @@ servers and move the rsyncd configuration to keep track of 'HEAD' for this data.
 Rsyncd will be managed by inetd/xinetd, so each client will see a clean and
 unchanging dataset to retrieve. Rotation of that data off the disk will happen
 in a timely fashion as well.
+
+== Puppet config ==
+
+The basic systems configured in the provided site.pp.dist example are:
+
+puppet.example.com       - puppet-master server
+ca.example.com           - master rpki server
+publish-1.example.com    - publication server AP
+log-1.example.com        - syslog collection server EU
+
+Additional publication or log servers can easily be added to the appropriate
+node definitions in site.pp.dist.
+
+Several global variables that need to be defined:
+
+  $syslog_servers : syslog destination(s) to be configured on all nodes
+  $pupper_server  : puppet server to be configure on all nodes
+
+There are 2 optional globals:
+  $ssh_client_range : an IP range used to restrict ssh access to all nodes.
+                      Default is '0.0.0.0/0', allowing any IP.
+  $ssh_unrestricted_port: a port to be allowed for any IP (e.g. a secondary
+                          and non-default port for ssh).
+
+At the bottom of the site.pp.dist is a common_config class which can be used
+to add any additional puppet config to be included for all nodes. e.g.
+adding users and or additional common packages.
