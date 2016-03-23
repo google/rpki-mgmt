@@ -55,40 +55,6 @@ class rpki::puppet_master(
       owner => 'root',
       group => 'root',
       mode => 0750,
-  } ->
-  file {
-    [
-     # mount directories for fileserver
-     '/etc/puppet/mounts',
-     '/etc/puppet/mounts/private', '/etc/puppet/mounts/public',
-     ] :
-      ensure => 'directory',
-      owner => 'puppet',
-      group => 'puppet',
-      mode => 0750,
-  } ->
-  ini_setting { 'puppet mount private host files':
-    ensure => present,
-    path   => '/etc/puppet/fileserver.conf',
-    section => 'private',
-    setting => 'path',
-    key_val_separator => ' ',
-    value   => "/etc/puppet/mounts/private/%H",
-  }
-  ini_setting { 'puppet mount public files':
-    ensure => present,
-    path   => '/etc/puppet/fileserver.conf',
-    section => 'public',
-    setting => 'path',
-    key_val_separator => ' ',
-    value   => "/etc/puppet/mounts/public",
-  }
-  ini_setting { 'remove default files config':
-    ensure => absent,
-    path   => '/etc/puppet/fileserver.conf',
-    section => 'files',
-    setting => 'path',
-    key_val_separator => ' ',
   }
 
 }

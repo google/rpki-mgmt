@@ -73,10 +73,8 @@ else
       # save a log of changes that can be sorted for important actions.
       if [ -z ${INFRA_VERBOSE} ]; then
         ${RSYNC} ${RSYNC_OPTS} ${RSYNC_EXC} ${INFRA_REPO}/puppet/modules/rpki/ ${PUPPET_INFRA_DIR}/modules/rpki/ >> ${LOG} 2>&1
-        ${RSYNC} ${RSYNC_OPTS} ${RSYNC_EXC} ${INFRA_REPO}/puppet/manifests/site.pp ${PUPPET_INFRA_DIR}/manifests/site.pp >> ${LOG} 2>&1
       else
         ${RSYNC} ${RSYNC_OPTS} ${RSYNC_EXC} ${INFRA_REPO}/puppet/modules/rpki/ ${PUPPET_INFRA_DIR}/modules/rpki/ 2>&1 | tee -a ${LOG}
-        ${RSYNC} ${RSYNC_OPTS} ${RSYNC_EXC} ${INFRA_REPO}/puppet/manifests/site.pp ${PUPPET_INFRA_DIR}/manifests/site.pp 2>&1 | tee -a ${LOG}
       fi
     fi
     if [ ! -z ${REMOVE_NOTIFY} ]; then
