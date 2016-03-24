@@ -54,15 +54,20 @@ class rpki::puppet_master(
     group => root,
   }
 
-  file {
-    [
-     # repo for pulling config
-     "$gitCron_infraRepoDir", "$gitCron_infraRepo",
-     ] :
+  # directory for rpki-mgmt related files.
+  file { "$gitCron_infraRepoDir":
       ensure => 'directory',
       owner => 'root',
       group => 'root',
-      mode => 0750,
+      mode => 0755,
+  }
+  # repo for pulling config
+  file { "$gitCron_infraRepo":
+    ensure => 'directory',
+    owner => 'root',
+    group => 'root',
+    mode => 0750,
+    requires => File["$gitCron_infraRepoDir"],
   }
 
 }
