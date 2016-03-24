@@ -67,7 +67,7 @@ class rpki::puppet_master(
     owner => 'root',
     group => 'root',
     mode => 0750,
-    requires => File["$gitCron_infraRepoDir"],
+    require => File["$gitCron_infraRepoDir"],
   }
 
 }
