@@ -24,6 +24,8 @@ and a single server storing the private key data away from public eyes. A
 puppet service contains configuration, and there are one or my syslog
 servers.
 
+This module is automatically pulled from GitHub once a day.
+
 == RPKI setup ==
 
 The RPKI services are managed by this configuration/system are offered using
@@ -74,3 +76,13 @@ There are 2 optional globals:
 At the bottom of the site.pp.dist is a common_config class which can be used
 to add any additional puppet config to be included for all nodes. e.g.
 adding users and or additional common packages.
+
+
+== TODO ==
+
+* config option to use a local repo of these modules instead of pulling from
+  github once a day
+* document profiles so users can define their own roles
+* make firewall management optional, integrate with puppetlabs firewall module
+* make syslog management optional
+* manage rpki.net software install/config
