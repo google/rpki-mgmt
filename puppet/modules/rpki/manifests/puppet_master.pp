@@ -33,10 +33,15 @@ class rpki::puppet_master(
     mode    => 0755,
     require => Package['puppetmaster'],
   }
+  # TODO: frequency will need to change once we expose the option for
+  #       checking for changes in a local repo instead of pulling
+  #       directly from github.
   cron { git_sync:
     command => '/usr/local/sbin/git_cron.sh > /tmp/git_cron.log 2>&1',
     ensure => 'present',
     user => 'root',
+    hour => '3',
+    minute => '15',
     require => [ File['/usr/local/sbin/git_cron.sh'],
                  File['/etc/default/rpki-mgmt'], ],
   }
