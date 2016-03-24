@@ -14,11 +14,14 @@
 #
 
 class rpki::puppet_master(
-  $gitCron_infraRepo = $::rpki::params::gitCron_infraRepo,
+  $gitCron_infraRepoDir = $::rpki::params::gitCron_infraRepoDir,
+  $gitCron_infraRepoName = $::rpki::params::gitCron_infraRepoName,
   $gitCron_infraNotify = $::rpki::params::gitCron_infraNotify,
   $gitCron_infraVerbose = $::rpki::params::gitCron_infraVerbose,
 )  inherits ::rpki::params
 {
+  $gitCron_infraRepo = "$gitCron_infraRepoDir/$gitCron_infraRepoName"
+
   package { ['git', 'puppetmaster', 'puppet-lint']:
     ensure => 'installed',
   }
@@ -49,7 +52,7 @@ class rpki::puppet_master(
   file {
     [
      # repo for pulling config
-     '/srv/repo', '/srv/repo/rpki-mgmt',
+     "$gitCron_infraRepoDir", "$gitCron_infraRepo",
      ] :
       ensure => 'directory',
       owner => 'root',

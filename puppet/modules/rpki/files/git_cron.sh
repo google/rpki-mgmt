@@ -39,8 +39,7 @@ if [ -z ${INFRA_REPO} ]; then
     exit 1
 fi
 
-TODAY=$(date +%y%m%d)
-LOG="/tmp/rpki-mgmt.$TODAY.log"
+LOG="/var/log/rpki-mgmt-git.log"
 
 GIT=/usr/bin/git
 PUPPET=/usr/bin/puppet
@@ -52,38 +51,31 @@ RSYNC_EXC='--exclude .git/'
 
 # Check for the INFRASTRUCTURE notification lock file.
 #
+date >> ${LOG} 2>&1
 if [ ! -f ${GIT_INFRA_NOTIFY} ] ; then
-  echo 'No INFRA notify file, exiting.'
+  echo "No INFRA notify file (${GIT_INFRA_NOTIFY}), exiting." >> ${LOG}
 else
-  if [ -d ${INFRA_REPO} ] ; then
-    #
-    # Copy from the repository to the storage location.
-    cwd=${CWD}
-    cd ${INFRA_REPO}
-      # Pull the repository to the temporary storage location.
-      if [ -z ${INFRA_VERBOSE} ]; then
-        ${GIT} pull > /tmp/git_pull.log 2>&1
-      else
-        ${GIT} pull 2>&1 | tee /tmp/git_pull.log
-      fi
-      cd ${cwd}
+  if [ ! -d ${INFRA_REPO} ] ; then
+    echo "No INFRA_REPO directory (${INFRA_REPO}), exiting." >> ${LOG}
+  else
 
-      date >> ${LOG} 2>&1
-      # Use rsync to pull the repository into the puppet directory,
-      # save a log of changes that can be sorted for important actions.
-      if [ -z ${INFRA_VERBOSE} ]; then
-        ${RSYNC} ${RSYNC_OPTS} ${RSYNC_EXC} ${INFRA_REPO}/puppet/modules/rpki/ ${PUPPET_INFRA_DIR}/modules/rpki/ >> ${LOG} 2>&1
-      else
-        ${RSYNC} ${RSYNC_OPTS} ${RSYNC_EXC} ${INFRA_REPO}/puppet/modules/rpki/ ${PUPPET_INFRA_DIR}/modules/rpki/ 2>&1 | tee -a ${LOG}
-      fi
+    # Pull the repository to the temporary storage location.
+    cd ${INFRA_REPO}
+    if [ -z ${INFRA_VERBOSE} ]; then
+      ${GIT} pull >> ${LOG} 2>&1
+    else
+      ${GIT} pull 2>&1 | tee -a ${LOG}
     fi
-    if [ ! -z ${REMOVE_NOTIFY} ]; then
-      /bin/rm ${GIT_INFRA_NOTIFY}
+
+    # Use rsync to pull the repository into the puppet directory,
+    # save a log of changes that can be sorted for important actions.
+    if [ -z ${INFRA_VERBOSE} ]; then
+      ${RSYNC} ${RSYNC_OPTS} ${RSYNC_EXC} ${INFRA_REPO}/puppet/modules/rpki/ ${PUPPET_INFRA_DIR}/modules/rpki/ >> ${LOG} 2>&1
+    else
+      ${RSYNC} ${RSYNC_OPTS} ${RSYNC_EXC} ${INFRA_REPO}/puppet/modules/rpki/ ${PUPPET_INFRA_DIR}/modules/rpki/ 2>&1 | tee -a ${LOG}
     fi
   fi
-
-
-# Remove the temporary logfile if it is zero length.
-if [ ! -s ${LOG} ] ; then
-  /bin/rm ${LOG}
+  if [ ! -z ${REMOVE_NOTIFY} ]; then
+    /bin/rm ${GIT_INFRA_NOTIFY}
+  fi
 fi
