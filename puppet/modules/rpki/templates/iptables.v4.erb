@@ -41,8 +41,8 @@
 <% if @roleRPKI_CA == true -%>
 # rpki CA
 -A INPUT -p tcp -m state --state NEW --dport <%= @rpkiCAport %> -j ACCEPT
-# allow web traffic
--A INPUT -p tcp -m state --state NEW --dport 80,443 -j ACCEPT
+# https web traffic
+-A INPUT -p tcp -m state --state NEW --dport 443 -j ACCEPT
 
 <% end -%>
 <% if @roleRPKI_RP == true -%>
