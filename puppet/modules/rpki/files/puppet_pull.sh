@@ -36,6 +36,8 @@ if [ ! -d "$dest" ]; then
     exit 1
 fi
 
+cd $dest
+
 (( delay = $RANDOM % 60 ))
 sleep $delay
 
@@ -49,4 +51,4 @@ touch $dest/$date/
 ln -snf $dest/$date latest
 
 # remove directories older than 10 days
-find $dest/$date/ --maxdepth 1 -type d -mtime +10 | xargs -r rm -fR
+find $dest/$date/ -maxdepth 1 -type d -mtime +10 | xargs -r rm -fR
