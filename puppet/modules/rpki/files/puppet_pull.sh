@@ -36,7 +36,7 @@ if [ ! -d "$dest" ]; then
     exit 1
 fi
 
-(( delay = %RANDOM % 60 ))
+(( delay = $RANDOM % 60 ))
 sleep $delay
 
 # sync to date dir, hardlinking to files from latest/ if no changes
