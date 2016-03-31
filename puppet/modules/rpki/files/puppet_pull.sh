@@ -46,4 +46,4 @@ sleep $delay
 ln -snf $dest/$date latest
 
 # remove directories older than 10 days
-find . -type d -mtime 10+ | xargs -r rm -fR
+find . -type d -mtime +10 | xargs -r rm -fR
