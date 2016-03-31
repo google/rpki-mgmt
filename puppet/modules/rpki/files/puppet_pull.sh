@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 #Copyright 2014 Google Inc. All Rights Reserved.
 #
@@ -37,7 +37,13 @@ if [ ! -d "$dest" ]; then
 fi
 
 (( delay = %RANDOM % 60 ))
-/usr/bin/rsync -av $src $dest/$date/ > $LOG 2>&1
+sleep $delay
 
-# delete empty dirs
-rmdir $dest/$date 2>/dev/null
+# sync to date dir, hardlinking to files from latest/ if no changes
+/usr/bin/rsync -av --link-dest=latest/ $src $dest/$date/ > $LOG 2>&1
+
+# update latest to point to most recent directory
+ln -snf $dest/$date latest
+
+# remove directories older than 10 days
+find . -type d -mtime 10+ | xargs -r rm -fR
