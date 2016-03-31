@@ -40,10 +40,13 @@ fi
 sleep $delay
 
 # sync to date dir, hardlinking to files from latest/ if no changes
-/usr/bin/rsync -av --link-dest=latest/ $src $dest/$date/ > $LOG 2>&1
+/usr/bin/rsync -av --link-dest=$dest/latest/ $src $dest/$date/ > $LOG 2>&1
+
+# touch top dir so we can use find -mtime to find old directories
+touch $dest/$date/
 
 # update latest to point to most recent directory
 ln -snf $dest/$date latest
 
 # remove directories older than 10 days
-find . -type d -mtime +10 | xargs -r rm -fR
+find $dest/$date/ --maxdepth 1 -type d -mtime +10 | xargs -r rm -fR
