@@ -99,7 +99,7 @@ node 'puppet.example.com'
 # ------------------------------------
 node "default" {
   include stdlib
-  class { "common_config": }
+  class { "rpki_common_config": }
 
   class { "rpki::puppet_config":
      puppetServer => $puppet_server,
@@ -114,7 +114,7 @@ node "default" {
 # All roles include common_config. This is the place to define resources
 # which should be installed and configured on every machine.
 #
-class common_config {
+class rpki_common_config {
 
   #
   # extra packages for all nodes

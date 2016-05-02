@@ -191,7 +191,7 @@ class rpki::profile::common {
   include stdlib
 
   # set up users, etc
-  class { "common_config": }
+  class { "rpki_common_config": }
 
   # install/config common packages
   include rpki
