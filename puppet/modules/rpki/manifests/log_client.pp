@@ -23,6 +23,7 @@ class rpki::log_client(
     mode => '0644',
     owner => 'root',
     group => 'root',
+    require => Package['syslog-ng'],
     notify => Service['syslog-ng'],
   }
 
