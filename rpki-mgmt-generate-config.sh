@@ -228,7 +228,7 @@ node "default" {
   class { "rpki_common_config": }
 
   class { "rpki::puppet_config":
-     puppetServer => $puppet_server,
+     puppetServer => '\$puppet_server',
   }
 }
 
@@ -267,4 +267,33 @@ class rpki_common_config {
 }
 EOF
 
-echo "Done. Puppet config written to $pp."
+echo "Puppet config written to $pp."
+echo
+
+echo "Creating rpki-mgmt base directory..."
+mkdir -p $rm_base
+if [ ! -d $rm_base ]; then
+   echo "Failed to create directory $rm_base"
+   exit 1
+fi
+cd $rm_base
+echo
+
+echo "Cloning rpki-mgmt $rm_branch branch from github..."
+/usr/bin/git clone -b $rm_branch https://github.com/google/rpki-mgmt.git rpki-mgmt.git
+if [ ! -d rpki-mgmt.git ]; then
+   echo "Failed to clone rpki-mgmt git repo"
+   exit 1
+fi
+echo
+
+echo "Copying rpki module to puppet directory..."
+cp -a /var/lib/rpki-mgmt/rpki-mgmt.git/puppet/modules/rpki/ /etc/puppet/modules/
+
+echo "To continue installation/configuration, either:"
+echo "    a) copy rpki-mgmt.pp to /etc/puppet/manifests/site.pp"
+echo "  or"
+echo "    b) copy contents of rpki-mgmt.pp to /etc/puppet/manifests/site.pp"
+echo
+echo "Then run puppet --apply"
+echo
