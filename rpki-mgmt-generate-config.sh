@@ -133,8 +133,8 @@ query_val "Git branch to track" rm_branch
 query_val "UNIX Group for rpki-mgmt directory" rm_group
 query_val "(Optional) IP range for allowing ssh access to all servers" rm_ssh
 query_val "Host name of puppet server" rm_puppet
+query_val "Host name of RPKI CA/RP server" rm_master
 query_vals "Host name(s) of syslog-ng server(s)" rm_syslog
-query_vals "Host name(s) of RPKI CA/RP server(s)" rm_master
 query_vals "Host name(s) of RPKI publication server(s)" rm_publication
 if [ -n "$rm_publication" ]; then
    query_val "rsync banner for RPKI publication server(s)" rm_rsync_banner
@@ -147,8 +147,8 @@ echo "Git branch to track                   : $rm_branch"
 echo "UNIX Group for rpki-mgmt directory    : $rm_group"
 echo "IP range for ssh access to all servers: $rm_ssh"
 echo "Host name of pupper server            : $rm_puppet"
+echo "Host name of RPKI CA/RP server        : $rm_master"
 echo "Host name(s) of syslog-ng server(s)   : $rm_syslog"
-echo "Host name(s) of RPKI CA/RP server(s)  : $rm_master"
 echo "Host name(s) of RPKI publication server(s): $rm_publication"
 if [ -n "$rm_publication" ]; then
    echo "rsync banner for publication server(s):" $rm_rsync_banner
@@ -178,7 +178,11 @@ cat >> $pp <<EOF
 #  any service, not just ssh.)
 \$ssh_unrestricted_port = ''
 
+# puppet master
 \$puppet_server = '$rm_puppet'
+
+# RPKI CA
+\$ca_server = '$rm_master'
 
 # syslog servers that all clients will use 
 \$syslog_servers = [
