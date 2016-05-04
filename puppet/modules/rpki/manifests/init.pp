@@ -98,7 +98,7 @@ class rpki::role::pub_server {
   }
   class { 'rpki::publish':
     moduleName => 'rpki',
-    modulePath => '/srv/rsync/rpki',
+    modulePath => '/srv/rsync/rpki/latest',
     moduleDescription => "$::hostname $rsync_module_description",
     moduleSource => "${ca_server}::rpki/",
     require => File['/srv/rsync/rpki'],
