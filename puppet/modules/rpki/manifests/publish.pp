@@ -57,7 +57,7 @@ class rpki::publish(
       command => "/usr/local/bin/puppet_pull.sh $moduleSource $modulePath >> /tmp/puppet_pull.log 2>&1",
       ensure => 'present',
       user => 'root',
-      minute => '*/5',
+      minute => '*/30',
       require => File['/usr/local/bin/puppet_pull.sh'],
     }
   }
