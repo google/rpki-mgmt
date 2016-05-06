@@ -1,9 +1,17 @@
 #!/bin/bash
 
+usage()
+{
+   echo "$0 [-g]"
+   echo "  -g: define additional group of nodes"
+   echo
+   exit 1
+}
+
 query_val()
 {
    local prompt="$1" var="$2" ans
-
+   qv_ans=
    echo "$prompt"
    echo "[ default: ${!2} ]"
    while :
@@ -18,11 +26,10 @@ query_val()
       read yn
       case "$yn" in
          N|n) continue;;
-         *) printf -v "$2" %s $ans
-            break;;
+         *) break;;
       esac
    done
-   #echo "$2 set to ${!2}"
+   qv_ans="$ans"
    echo
 }
 
@@ -32,7 +39,7 @@ query_vals()
 
    echo "$prompt"
    echo "[ enter one item per line; blank line to end, q to quit. ]"
-   echo "[ default: ${!2} ]"
+   qv_ans=
    while :
    do
       while :
@@ -42,52 +49,90 @@ query_vals()
          case "$ans" in
             "") break;;
             "q") exit;;
-            *) if [ -z "${!2}" ]; then
-                  printf -v "$2" %s "$ans"
+            *) if [ -z "$qv_ans" ]; then
+                  qv_ans="$ans"
                else
-                  printf -v "$2" %s "${!2} $ans"
+                  qv_ans+=" $ans"
                fi
                ;;
          esac
       done
 
-      echo -n "You entered [${!2}]. Is this correct (Y/n)?"
+      echo -n "You entered [$qv_ans]. Is this correct (Y/n)?"
       read yn
       case "$yn" in
-         N|n) printf -v "$2" %s ""
+         N|n) qv_ans=""
               continue;;
          *) break;;
       esac
    done
-   #echo "$2 set to ${!2}"
    echo
 }
 
 node_role()
 {
-   local header="$1" role="$2" host
+   local header="$1" role="$2" host pfx
    shift 2
+   [ -z "$@" ] && return
    cat >> $pp <<EOF
 # ------------------------------------
 # $header
 
 EOF
 
+   pfx=" "
+   echo -n "node" >> $pp
    for host in $@
    do
-      cat >> $pp <<EOF
-node '$host'
-{
+      echo -n "$pfx'$host'" >> $pp
+      pfx=", "
+   done
+   cat >> $pp <<EOF
+ {
   include $role
 }
 
 EOF
-   done
 }
 
-#
+# node_wrapper $rm_base_prefix "rpki::role::log_server"
+node_wrapper()
+{
+   local prefix="$1" role="$2"
+
+   cat >> $pp <<EOF
+class $prefix::$role
+{
+EOF
+   if [ -n "$rm_rsync_banner" ]; then
+      echo "   \$rsync_module_description = \"\$${prefix}_rsync_module_description\"" >> $pp
+   fi
+   if [ -n "$rm_ssh" ]; then
+      echo "   \$ssh_client_range = \"\$${prefix}_ssh_client_range\"" >> $pp
+   fi
+   #   echo "   \$ssh_unrestricted_port = \"\$${prefix}_ssh_unrestricted_port\"" >> $pp
+   if [ -n "$rm_puppet" ]; then
+      echo "   \$puppet_server = \"\$${prefix}_puppet_server\"" >> $pp
+   fi
+   if [ -n "$rm_master" ]; then
+      echo "   \$ca_server = \"\$${prefix}_ca_server\"" >> $pp
+   fi
+   if [ -n "$rm_syslog" ]; then
+      echo "   \$syslog_servers = \$${prefix}_syslog_servers" >> $pp
+   fi
+   if [ -n "$rm_publication" ]; then
+      echo "   \$publication_servers = \$${prefix}_publication_servers" >> $pp
+   fi
+   cat >> $pp <<EOF
+   include $role
+}
+
+EOF
+}
+
+###########################################################################
 # defaults
-#
+###########################################################################
 
 # group for rpki-mgmt base directory
 rm_group=${RPKIMGMT_GROUP:-rpki-mgmt}
@@ -117,35 +162,66 @@ rm_publication=${RPKIMGMT_PUBLICATION_SERVERS}
 rm_rsync_banner=${RPKIMGMT_PUBLICATION_SERVERS:-RPKI Publication Service}
 
 # allowed IP range for ssh
-rm_ssh=${RPKIMGMT_:-0.0.0.0/0}
+rm_ssh=${RPKIMGMT_SSH_RANGE}
 
-# output file
+group=0
+while getopts g opt
+do
+    case "$opt" in
+      g)  group=1;;
+      \?) usage;;
+    esac
+done
+shift `expr $OPTIND - 1`
+
+if [ $group -eq 1 ]; then
+   query_val "Prefix for this group" rm_base_prefix
+   rm_base_prefix="$qv_ans"
+   rm_prefix="${rm_base_prefix}_"
+   rm_role_prefix="${rm_base_prefix}::"
+   #pp="rpki-mgmt-$rm_base_prefix.pp"
+#else
+#   pp="rpki-mgmt.pp"
+fi
 pp="rpki-mgmt.pp"
 
-if [ -e $pp ]; then
-   echo "File $pp already exists. Remove or rename it to continue."
-   exit 2
-fi
+#if [ -e $pp ]; then
+#   echo "File $pp already exists. Remove or rename it to continue."
+#   exit 2
+#fi
 
 # ask for values
-query_val "Base directory for rpki-mgmt git repo" rm_base
-query_val "Git branch to track" rm_branch
-query_val "UNIX Group for rpki-mgmt directory" rm_group
-query_val "(Optional) IP range for allowing ssh access to all servers" rm_ssh
+if [ $group -eq 0 ]; then
+   query_val "Base directory for rpki-mgmt git repo" rm_base
+   rm_base="$qv_ans"
+   query_val "Git branch to track" rm_branch
+   rm_branch="$qv_ans"
+   query_val "UNIX Group for rpki-mgmt directory" rm_group
+   rm_group="$qv_ans"
+   query_val "(Optional) IP range for allowing ssh access to all servers" rm_ssh
+   rm_ssh="$qv_ans"
+fi
 query_val "Host name of puppet server" rm_puppet
+rm_puppet="$qv_ans"
 query_val "Host name of RPKI CA/RP server" rm_master
+rm_master="$qv_ans"
 query_vals "Host name(s) of syslog-ng server(s)" rm_syslog
+rm_syslog="$qv_ans"
 query_vals "Host name(s) of RPKI publication server(s)" rm_publication
+rm_publication="$qv_ans"
 if [ -n "$rm_publication" ]; then
    query_val "rsync banner for RPKI publication server(s)" rm_rsync_banner
+   rm_rsync_banner="$qv_ans"
 fi
 
 # double check
 echo "============= Configuration ================="
-echo "Base directory for rpki-mgmt git repo : $rm_base"
-echo "Git branch to track                   : $rm_branch"
-echo "UNIX Group for rpki-mgmt directory    : $rm_group"
-echo "IP range for ssh access to all servers: $rm_ssh"
+if [ $group -eq 0 ]; then
+   echo "Base directory for rpki-mgmt git repo : $rm_base"
+   echo "Git branch to track                   : $rm_branch"
+   echo "UNIX Group for rpki-mgmt directory    : $rm_group"
+   echo "IP range for ssh access to all servers: $rm_ssh"
+fi
 echo "Host name of pupper server            : $rm_puppet"
 echo "Host name of RPKI CA/RP server        : $rm_master"
 echo "Host name(s) of syslog-ng server(s)   : $rm_syslog"
@@ -162,30 +238,54 @@ case "$yn" in
 esac
 
 # write to file
-echo "#This file generated using $0 on `date`" > $pp
+echo "# This file generated using $0 on `date`" >> $pp
 cat >> $pp <<EOF
 
 # ---------------------------------------------------------------
 # Globals
 # ---------------------------------------------------------------
 
-# ip range for ssh access on port 22
-\$ssh_client_range = '$rm_ssh'
+EOF
 
+if [ $group -eq 0 -o -n "$rm_ssh" ]; then
+   cat >> $pp <<EOF
+# ip range for ssh access on port 22
+\$${rm_prefix}ssh_client_range = '$rm_ssh'
+
+EOF
+fi
+
+if [ $group -eq 0 ]; then
+   cat >> $pp <<EOF
 # optional port for ssh access without client ip restrictions
 # Default is '', which means no rule will be added.
 # (technically it just adds a TCP rule for the port, so it could be
 #  any service, not just ssh.)
-\$ssh_unrestricted_port = ''
+\$${rm_prefix}ssh_unrestricted_port = ''
 
+EOF
+fi
+
+if [ $group -eq 0 -o -n "$rm_puppet" ]; then
+   cat >> $pp <<EOF
 # puppet master
-\$puppet_server = '$rm_puppet'
+\$${rm_prefix}puppet_server = '$rm_puppet'
 
+EOF
+fi
+
+if [ $group -eq 0 -o -n "$rm_master" ]; then
+   cat >> $pp <<EOF
 # RPKI CA
-\$ca_server = '$rm_master'
+\$${rm_prefix}ca_server = '$rm_master'
 
+EOF
+fi
+
+if [ $group -eq 0 -o -n "$rm_syslog" ]; then
+   cat >> $pp <<EOF
 # syslog servers that all clients will use 
-\$syslog_servers = [
+\$${rm_prefix}syslog_servers = [
 EOF
 
 for host in $rm_syslog
@@ -194,10 +294,15 @@ do
 done
 
 cat >> $pp <<EOF
-                  ]
+   ]
 
+EOF
+fi
+
+if [ $group -eq 0 -o -n "$rm_publication" ]; then
+   cat >> $pp <<EOF
 # publication servers
-\$publication_servers = [
+\$${rm_prefix}publication_servers = [
 EOF
 
 for host in $rm_publication
@@ -206,36 +311,44 @@ do
 done
 
 cat >> $pp <<EOF
-                        ]
+  ]
 
-\$rsync_module_description = '$rm_rsync_banner'
+EOF
+fi
 
+if [ $group -eq 0 -o -n "$rm_rsync_banner" ]; then
+   cat >> $pp <<EOF
+\$${rm_prefix}rsync_module_description = '$rm_rsync_banner'
+
+EOF
+fi
+
+cat >> $pp <<EOF
 # ---------------------------------------------------------------
 # Nodes
 # ---------------------------------------------------------------
 
 EOF
 
-node_role "syslog servers" "rpki::role::log_server" $rm_syslog
-node_role "puppet servers" "rpki::role::puppet_master" $rm_puppet
-node_role "RPKI CA/RP servers" "rpki::role::rpki_master" $rm_master
-node_role "publication servers" "rpki::role::pub_server" $rm_publication
-
-cat >> $pp <<EOF
-
-# ------------------------------------
-# For unknown nodes, configure puppet server
-# and just add rpki_common_config
+if [ $group -eq 1 ]; then
+   cat >> $pp <<EOF
 #
-node "default" {
-  include stdlib
-  class { "rpki_common_config": }
+# wrappers for group $rm_base_prefix
+#
+EOF
+   node_wrapper $rm_base_prefix "rpki::role::log_server"
+   node_wrapper $rm_base_prefix "rpki::role::puppet_master"
+   node_wrapper $rm_base_prefix "rpki::role::rpki_master"
+   node_wrapper $rm_base_prefix "rpki::role::pub_server"
+fi
 
-  class { "rpki::puppet_config":
-     puppetServer => '\$puppet_server',
-  }
-}
+node_role "syslog servers" "${rm_role_prefix}rpki::role::log_server" $rm_syslog
+node_role "puppet servers" "${rm_role_prefix}rpki::role::puppet_master" $rm_puppet
+node_role "RPKI CA/RP servers" "${rm_role_prefix}rpki::role::rpki_master" $rm_master
+node_role "publication servers" "${rm_role_prefix}rpki::role::pub_server" $rm_publication
 
+if [ $group -eq 0 ]; then
+   cat >> $pp <<EOF
 # ---------------------------------------------------------------------
 # Classes
 # ---------------------------------------------------------------------
@@ -270,34 +383,37 @@ class rpki_common_config {
   #}
 }
 EOF
+fi
 
 echo "Puppet config written to $pp."
 echo
 
-echo "Creating rpki-mgmt base directory..."
-mkdir -p $rm_base
-if [ ! -d $rm_base ]; then
-   echo "Failed to create directory $rm_base"
-   exit 1
-fi
-cd $rm_base
-echo
+if [ $group -eq 0 ]; then
+   echo "Creating rpki-mgmt base directory..."
+   mkdir -p $rm_base
+   if [ ! -d $rm_base ]; then
+      echo "Failed to create directory $rm_base"
+      exit 1
+   fi
+   cd $rm_base
+   echo
 
-echo "Cloning rpki-mgmt $rm_branch branch from github..."
-/usr/bin/git clone -b $rm_branch https://github.com/google/rpki-mgmt.git rpki-mgmt.git
-if [ ! -d rpki-mgmt.git ]; then
-   echo "Failed to clone rpki-mgmt git repo"
-   exit 1
-fi
-echo
+   echo "Cloning rpki-mgmt $rm_branch branch from github..."
+   /usr/bin/git clone -b $rm_branch https://github.com/google/rpki-mgmt.git rpki-mgmt.git
+   if [ ! -d rpki-mgmt.git ]; then
+      echo "Failed to clone rpki-mgmt git repo"
+      exit 1
+   fi
+   echo
 
-echo "Copying rpki module to puppet directory..."
-cp -a /var/lib/rpki-mgmt/rpki-mgmt.git/puppet/modules/rpki/ /etc/puppet/modules/
+   echo "Copying rpki module to puppet directory..."
+   cp -a /var/lib/rpki-mgmt/rpki-mgmt.git/puppet/modules/rpki/ /etc/puppet/modules/
+fi
 
 echo "To continue installation/configuration, either:"
-echo "    a) copy rpki-mgmt.pp to /etc/puppet/manifests/site.pp"
+echo "    a) copy $pp to /etc/puppet/manifests/site.pp"
 echo "  or"
-echo "    b) copy contents of rpki-mgmt.pp to /etc/puppet/manifests/site.pp"
+echo "    b) copy contents of $pp to /etc/puppet/manifests/site.pp"
 echo
 echo "Then run puppet --apply"
 echo
