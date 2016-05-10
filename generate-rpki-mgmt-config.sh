@@ -390,25 +390,30 @@ echo "Puppet config written to $pp."
 echo
 
 if [ $group -eq 0 ]; then
-   echo "Creating rpki-mgmt base directory..."
-   mkdir -p "$rm_base"
    if [ ! -d "$rm_base" ]; then
-      echo "Failed to create directory $rm_base"
-      exit 1
+       echo "Creating rpki-mgmt base directory..."
+       mkdir -p "$rm_base"
+       if [ ! -d "$rm_base" ]; then
+           echo "Failed to create directory $rm_base"
+           exit 1
+       fi
+       echo
    fi
    cd "$rm_base"
-   echo
 
-   echo "Cloning rpki-mgmt $rm_branch branch from github..."
-   /usr/bin/git clone -b "$rm_branch" https://github.com/google/rpki-mgmt.git rpki-mgmt.git
    if [ ! -d rpki-mgmt.git ]; then
-      echo "Failed to clone rpki-mgmt git repo"
-      exit 1
-   fi
-   echo
+       echo "Cloning rpki-mgmt $rm_branch branch from github..."
+       /usr/bin/git clone -b "$rm_branch" https://github.com/google/rpki-mgmt.git rpki-mgmt.git
+       if [ ! -d rpki-mgmt.git ]; then
+           echo "Failed to clone rpki-mgmt git repo"
+           exit 1
+       fi
+       echo
 
-   echo "Copying rpki module to puppet directory..."
-   cp -a "$rm_base/rpki-mgmt.git/puppet/modules/rpki/" /etc/puppet/modules/
+       echo "Copying rpki module to puppet directory..."
+       cp -a "$rm_base/rpki-mgmt.git/puppet/modules/rpki/" /etc/puppet/modules/
+       echo
+   fi
 fi
 
 echo "To continue installation/configuration, either:"
