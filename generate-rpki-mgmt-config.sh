@@ -71,9 +71,10 @@ query_vals()
 
 node_role()
 {
-   local header="$1" role="$2" host pfx
+   local header="$1" role="$2" hosts host pfx
    shift 2
-   [ -z "$@" ] && return
+   hosts="$@"
+   [ -z "$hosts" ] && return
    cat >> $pp <<EOF
 # ------------------------------------
 # $header
@@ -82,7 +83,7 @@ EOF
 
    pfx=" "
    echo -n "node" >> $pp
-   for host in $@
+   for host in $hosts
    do
       echo -n "$pfx'$host'" >> $pp
       pfx=", "
@@ -390,16 +391,16 @@ echo
 
 if [ $group -eq 0 ]; then
    echo "Creating rpki-mgmt base directory..."
-   mkdir -p $rm_base
-   if [ ! -d $rm_base ]; then
+   mkdir -p "$rm_base"
+   if [ ! -d "$rm_base" ]; then
       echo "Failed to create directory $rm_base"
       exit 1
    fi
-   cd $rm_base
+   cd "$rm_base"
    echo
 
    echo "Cloning rpki-mgmt $rm_branch branch from github..."
-   /usr/bin/git clone -b $rm_branch https://github.com/google/rpki-mgmt.git rpki-mgmt.git
+   /usr/bin/git clone -b "$rm_branch" https://github.com/google/rpki-mgmt.git rpki-mgmt.git
    if [ ! -d rpki-mgmt.git ]; then
       echo "Failed to clone rpki-mgmt git repo"
       exit 1
@@ -407,7 +408,7 @@ if [ $group -eq 0 ]; then
    echo
 
    echo "Copying rpki module to puppet directory..."
-   cp -a /var/lib/rpki-mgmt/rpki-mgmt.git/puppet/modules/rpki/ /etc/puppet/modules/
+   cp -a "$rm_base/rpki-mgmt.git/puppet/modules/rpki/" /etc/puppet/modules/
 fi
 
 echo "To continue installation/configuration, either:"
