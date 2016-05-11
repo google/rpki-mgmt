@@ -390,6 +390,13 @@ echo "* Puppet config written to $pp."
 echo
 
 if [ $group -eq 0 ]; then
+   echo "* Creating group $rm_group"
+   groupadd -r "$rm_group" 2>/dev/null
+   if [ $? -ne 0 -a $? -ne 9 ]; then
+       echo "Failed to add group $rm_group"
+       exit 1
+   fi
+
    if [ ! -d "$rm_base" ]; then
        echo "* Creating rpki-mgmt base directory..."
        mkdir -p "$rm_base"
@@ -415,12 +422,16 @@ if [ $group -eq 0 ]; then
        echo
    fi
 
-   if [ -n "$rm_publication" -a -z "$rm_master" ]; then
-       echo "  NOTE: nodes in the \$${rm_prefix}rm_publication_servers list"
-       echo "        must be added to \$rm_publication_servers list manually"
-       echo "        so that they will be allowed to rsync from \$ca_server."
-       echo
-   fi
+   chgrp -R "$rm_group" "$rm_base"
+
+else
+
+    if [ -n "$rm_publication" -a -z "$rm_master" ]; then
+        echo "***  NOTE: nodes in the \$${rm_prefix}publication_servers list"
+        echo "        must be added to \$publication_servers list manually"
+        echo "        so that they will be allowed to rsync from \$ca_server."
+        echo
+    fi
 fi
 
 echo "* To continue installation/configuration, either:"
@@ -428,5 +439,5 @@ echo "    a) copy $pp to /etc/puppet/manifests/site.pp"
 echo "  or"
 echo "    b) copy contents of $pp to /etc/puppet/manifests/site.pp"
 echo
-echo "  Then run puppet --apply"
+echo "  Then run puppet agent --test"
 echo
