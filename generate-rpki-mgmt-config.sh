@@ -8,6 +8,7 @@ usage()
    exit 1
 }
 
+# query_val "Prefix for this group" rm_base_prefix
 query_val()
 {
    local prompt="$1" var="$2" ans
@@ -18,7 +19,7 @@ query_val()
       echo -n ": "
       read ans
       if [ -z "$ans" ]; then
-         ans=${!2}
+         ans=${!var}
       fi
 
       echo -n "You entered [$ans]. Is this correct (Y/n)?"
@@ -72,22 +73,22 @@ node_role()
 {
    local header="$1" role="$2" hosts host pfx
    shift 2
-   hosts="$@"
+   hosts="$*"
    [ -z "$hosts" ] && return
-   cat >> $pp <<EOF
+   cat >> "$pp" <<EOF
 # ------------------------------------
 # $header
 
 EOF
 
    pfx=" "
-   echo -n "node" >> $pp
+   echo -n "node" >> "$pp"
    for host in $hosts
    do
-      echo -n "$pfx'$host'" >> $pp
+      echo -n "$pfx'$host'" >> "$pp"
       pfx=", "
    done
-   cat >> $pp <<EOF
+   cat >> "$pp" <<EOF
  {
   include $role
 }
@@ -100,30 +101,30 @@ node_wrapper()
 {
    local prefix="$1" role="$2"
 
-   cat >> $pp <<EOF
+   cat >> "$pp" <<EOF
 class $prefix::$role
 {
 EOF
    if [ -n "$rm_rsync_banner" ]; then
-      echo "   \$rsync_module_description = \"\$${prefix}_rsync_module_description\"" >> $pp
+      echo "   \$rsync_module_description = \"\$${prefix}_rsync_module_description\"" >> "$pp"
    fi
    if [ -n "$rm_ssh" ]; then
-      echo "   \$ssh_client_range = \"\$${prefix}_ssh_client_range\"" >> $pp
+      echo "   \$ssh_client_range = \"\$${prefix}_ssh_client_range\"" >> "$pp"
    fi
-   #   echo "   \$ssh_unrestricted_port = \"\$${prefix}_ssh_unrestricted_port\"" >> $pp
+   #   echo "   \$ssh_unrestricted_port = \"\$${prefix}_ssh_unrestricted_port\"" >> "$pp"
    if [ -n "$rm_puppet" ]; then
-      echo "   \$puppet_server = \"\$${prefix}_puppet_server\"" >> $pp
+      echo "   \$puppet_server = \"\$${prefix}_puppet_server\"" >> "$pp"
    fi
    if [ -n "$rm_master" ]; then
-      echo "   \$ca_server = \"\$${prefix}_ca_server\"" >> $pp
+      echo "   \$ca_server = \"\$${prefix}_ca_server\"" >> "$pp"
    fi
    if [ -n "$rm_syslog" ]; then
-      echo "   \$syslog_servers = \$${prefix}_syslog_servers" >> $pp
+      echo "   \$syslog_servers = \$${prefix}_syslog_servers" >> "$pp"
    fi
    if [ -n "$rm_publication" ]; then
-      echo "   \$publication_servers = \$${prefix}_publication_servers" >> $pp
+      echo "   \$publication_servers = \$${prefix}_publication_servers" >> "$pp"
    fi
-   cat >> $pp <<EOF
+   cat >> "$pp" <<EOF
    include $role
 }
 
@@ -143,8 +144,8 @@ rm_base=${RPKIMGMT_BASE:-/var/lib/rpki-mgmt}
 # rpki-mgmt branch to track
 rm_branch=${RPKIMGMT_BRANCH:-master}
 
-# frequency to pull from github
-rm_pull=${RPKIMGMT_PULL_FREQUENCY:-daily}
+# TODO: frequency to pull from github
+#rm_pull=${RPKIMGMT_PULL_FREQUENCY:-daily}
 
 # puppet server
 rm_puppet=${RPKIMGMT_PUPPET_SERVER}
@@ -172,7 +173,7 @@ do
       \?) usage;;
     esac
 done
-shift `expr $OPTIND - 1`
+shift $(( OPTIND - 1 ))
 
 if [ $group -eq 1 ]; then
    query_val "Prefix for this group" rm_base_prefix
@@ -184,11 +185,6 @@ if [ $group -eq 1 ]; then
 #   pp="rpki-mgmt.pp"
 fi
 pp="rpki-mgmt.pp"
-
-#if [ -e $pp ]; then
-#   echo "File $pp already exists. Remove or rename it to continue."
-#   exit 2
-#fi
 
 # ask for values
 if [ $group -eq 0 ]; then
@@ -238,8 +234,8 @@ case "$yn" in
 esac
 
 # write to file
-echo "# This file generated using $0 on `date`" >> $pp
-cat >> $pp <<EOF
+echo "# This file generated using $0 on $(date)" >> "$pp"
+cat >> "$pp" <<EOF
 
 # ---------------------------------------------------------------
 # Globals
@@ -248,7 +244,7 @@ cat >> $pp <<EOF
 EOF
 
 if [ $group -eq 0 -o -n "$rm_ssh" ]; then
-   cat >> $pp <<EOF
+   cat >> "$pp" <<EOF
 # ip range for ssh access on port 22
 \$${rm_prefix}ssh_client_range = '$rm_ssh'
 
@@ -256,7 +252,7 @@ EOF
 fi
 
 if [ $group -eq 0 ]; then
-   cat >> $pp <<EOF
+   cat >> "$pp" <<EOF
 # optional port for ssh access without client ip restrictions
 # Default is '', which means no rule will be added.
 # (technically it just adds a TCP rule for the port, so it could be
@@ -267,7 +263,7 @@ EOF
 fi
 
 if [ $group -eq 0 -o -n "$rm_puppet" ]; then
-   cat >> $pp <<EOF
+   cat >> "$pp" <<EOF
 # puppet master
 \$${rm_prefix}puppet_server = '$rm_puppet'
 
@@ -275,7 +271,7 @@ EOF
 fi
 
 if [ $group -eq 0 -o -n "$rm_master" ]; then
-   cat >> $pp <<EOF
+   cat >> "$pp" <<EOF
 # RPKI CA
 # Hosts assigned the pub_server role will pull data from this host
 \$${rm_prefix}ca_server = '$rm_master'
@@ -284,24 +280,24 @@ EOF
 fi
 
 if [ $group -eq 0 -o -n "$rm_syslog" ]; then
-   cat >> $pp <<EOF
+   cat >> "$pp" <<EOF
 # syslog servers that all clients will use
 \$${rm_prefix}syslog_servers = [
 EOF
 
 for host in $rm_syslog
 do
-   echo "                   '$host'," >> $pp
+   echo "                   '$host'," >> "$pp"
 done
 
-cat >> $pp <<EOF
+cat >> "$pp" <<EOF
    ]
 
 EOF
 fi
 
 if [ $group -eq 0 -o -n "$rm_publication" ]; then
-   cat >> $pp <<EOF
+   cat >> "$pp" <<EOF
 # publication servers
 # Hosts assigned the rpki_master role will allow hosts in this list to
 # connect via rsync. If this value is empty, any host will be able to
@@ -311,24 +307,24 @@ EOF
 
 for host in $rm_publication
 do
-   echo "                   '$host'," >> $pp
+   echo "                   '$host'," >> "$pp"
 done
 
-cat >> $pp <<EOF
+cat >> "$pp" <<EOF
   ]
 
 EOF
 fi
 
 if [ $group -eq 0 -o -n "$rm_rsync_banner" ]; then
-   cat >> $pp <<EOF
+   cat >> "$pp" <<EOF
 # banner text displayed by pub_server nodes
 \$${rm_prefix}rsync_module_description = '$rm_rsync_banner'
 
 EOF
 fi
 
-cat >> $pp <<EOF
+cat >> "$pp" <<EOF
 # ---------------------------------------------------------------
 # ${rm_base_prefix} Nodes
 # ---------------------------------------------------------------
@@ -336,7 +332,7 @@ cat >> $pp <<EOF
 EOF
 
 if [ $group -eq 1 ]; then
-   cat >> $pp <<EOF
+   cat >> "$pp" <<EOF
 #
 # wrappers for group $rm_base_prefix
 #
@@ -353,7 +349,7 @@ node_role "RPKI CA/RP servers" "${rm_role_prefix}rpki::role::rpki_master" $rm_ma
 node_role "publication servers" "${rm_role_prefix}rpki::role::pub_server" $rm_publication
 
 if [ $group -eq 0 ]; then
-   cat >> $pp <<EOF
+   cat >> "$pp" <<EOF
 # ---------------------------------------------------------------------
 # Classes
 # ---------------------------------------------------------------------
