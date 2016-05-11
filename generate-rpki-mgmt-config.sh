@@ -12,8 +12,7 @@ query_val()
 {
    local prompt="$1" var="$2" ans
    qv_ans=
-   echo "$prompt"
-   echo "[ default: ${!2} ]"
+   echo "* $prompt (default: ${!var})"
    while :
    do
       echo -n ": "
@@ -37,7 +36,7 @@ query_vals()
 {
    local prompt="$1" var="$2" ans
 
-   echo "$prompt"
+   echo "* $prompt"
    echo "[ enter one item per line; blank line to end, q to quit. ]"
    qv_ans=
    while :
@@ -216,7 +215,7 @@ if [ -n "$rm_publication" ]; then
 fi
 
 # double check
-echo "============= Configuration ================="
+echo "* Confirm Configuration"
 if [ $group -eq 0 ]; then
    echo "Base directory for rpki-mgmt git repo : $rm_base"
    echo "Git branch to track                   : $rm_branch"
@@ -278,6 +277,7 @@ fi
 if [ $group -eq 0 -o -n "$rm_master" ]; then
    cat >> $pp <<EOF
 # RPKI CA
+# Hosts assigned the pub_server role will pull data from this host
 \$${rm_prefix}ca_server = '$rm_master'
 
 EOF
@@ -285,7 +285,7 @@ fi
 
 if [ $group -eq 0 -o -n "$rm_syslog" ]; then
    cat >> $pp <<EOF
-# syslog servers that all clients will use 
+# syslog servers that all clients will use
 \$${rm_prefix}syslog_servers = [
 EOF
 
@@ -303,6 +303,9 @@ fi
 if [ $group -eq 0 -o -n "$rm_publication" ]; then
    cat >> $pp <<EOF
 # publication servers
+# Hosts assigned the rpki_master role will allow hosts in this list to
+# connect via rsync. If this value is empty, any host will be able to
+# connect via rsync.
 \$${rm_prefix}publication_servers = [
 EOF
 
@@ -319,6 +322,7 @@ fi
 
 if [ $group -eq 0 -o -n "$rm_rsync_banner" ]; then
    cat >> $pp <<EOF
+# banner text displayed by pub_server nodes
 \$${rm_prefix}rsync_module_description = '$rm_rsync_banner'
 
 EOF
@@ -326,7 +330,7 @@ fi
 
 cat >> $pp <<EOF
 # ---------------------------------------------------------------
-# Nodes
+# ${rm_base_prefix} Nodes
 # ---------------------------------------------------------------
 
 EOF
@@ -386,12 +390,12 @@ class rpki_common_config {
 EOF
 fi
 
-echo "Puppet config written to $pp."
+echo "* Puppet config written to $pp."
 echo
 
 if [ $group -eq 0 ]; then
    if [ ! -d "$rm_base" ]; then
-       echo "Creating rpki-mgmt base directory..."
+       echo "* Creating rpki-mgmt base directory..."
        mkdir -p "$rm_base"
        if [ ! -d "$rm_base" ]; then
            echo "Failed to create directory $rm_base"
@@ -402,7 +406,7 @@ if [ $group -eq 0 ]; then
    cd "$rm_base"
 
    if [ ! -d rpki-mgmt.git ]; then
-       echo "Cloning rpki-mgmt $rm_branch branch from github..."
+       echo "* Cloning rpki-mgmt $rm_branch branch from github..."
        /usr/bin/git clone -b "$rm_branch" https://github.com/google/rpki-mgmt.git rpki-mgmt.git
        if [ ! -d rpki-mgmt.git ]; then
            echo "Failed to clone rpki-mgmt git repo"
@@ -410,16 +414,23 @@ if [ $group -eq 0 ]; then
        fi
        echo
 
-       echo "Copying rpki module to puppet directory..."
+       echo "* Copying rpki module to puppet directory..."
        cp -a "$rm_base/rpki-mgmt.git/puppet/modules/rpki/" /etc/puppet/modules/
+       echo
+   fi
+
+   if [ -n "$rm_publication" -a -z "$rm_master" ]; then
+       echo "  NOTE: nodes in the \$${rm_prefix}rm_publication_servers list"
+       echo "        must be added to \$rm_publication_servers list manually"
+       echo "        so that they will be allowed to rsync from \$ca_server."
        echo
    fi
 fi
 
-echo "To continue installation/configuration, either:"
+echo "* To continue installation/configuration, either:"
 echo "    a) copy $pp to /etc/puppet/manifests/site.pp"
 echo "  or"
 echo "    b) copy contents of $pp to /etc/puppet/manifests/site.pp"
 echo
-echo "Then run puppet --apply"
+echo "  Then run puppet --apply"
 echo
