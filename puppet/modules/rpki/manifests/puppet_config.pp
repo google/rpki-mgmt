@@ -22,7 +22,7 @@ class rpki::puppet_config(
     ensure => present,
     match  => '^#?START=',
     line   => 'START=true',
-    path   => '/etc/default/puppet',
+    path   => $rpki::params::pupdeffile,
     notify => Service["puppet"],
   } ->
   ini_setting { 'puppet server':

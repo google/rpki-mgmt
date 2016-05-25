@@ -29,10 +29,10 @@ class rpki::service(
     hasrestart => true,
   }
 
-  service { 'iptables-persistent':
+  service { "$rpki::params::ipt_pkg":
     ensure => "running",
     enable => 'true',
-    require => Package['iptables-persistent'],
+    require => Package["$rpki::params::ipt_pkg"],
     hasrestart => true,
   }
 

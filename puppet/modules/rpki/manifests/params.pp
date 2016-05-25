@@ -46,6 +46,18 @@ class rpki::params () {
     $manageRcynic = false
     $rcynicBase = '/var/rcynic/data'
 
+    case $::lsbmajdistrelease {
+      '8': {
+        $pupdeffile = '/etc/default/puppetmaster'
+        $ipt_pkg = 'netfilter-persistent'
+      }
+      '7': {
+        $pupdeffile = '/etc/default/puppet.conf'
+        $ipt_pkg = 'iptables-persistent'
+      }
+      default: { fail("debian release $::lsbmajdistrelease not supported") }
+    }
+
   } else {
     fail("Class['screech_owl::params']: Unsupported osfamily: ${::osfamily}")
   }
