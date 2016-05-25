@@ -22,7 +22,7 @@ define rpki::rpki_repo()
   }  -> Package <| |>
 
   exec{'get rpki.net APT repo':
-    command => "/usr/bin/wget -q -O /etc/apt/sources.list.d/rpki.list http://download.rpki.net/APT/rpki.$::lsbdistcodename.list",
+    command => "/usr/bin/wget -q -O /etc/apt/sources.list.d/rpki.list http://download.rpki.net/$rpki::params::apt_path && /usr/bin/apt-get update",
     creates => "/etc/apt/sources.list.d/rpki.list",
   }
   file{'/etc/apt/sources.list.d/rpki.list':

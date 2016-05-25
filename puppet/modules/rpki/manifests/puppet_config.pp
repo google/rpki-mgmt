@@ -17,14 +17,16 @@ class rpki::puppet_config(
 {
   package { 'puppet':
     ensure => 'installed',
-  } ->
-  file_line { 'start puppet on boot': # xxx: debian-ism
-    ensure => present,
-    match  => '^#?START=',
-    line   => 'START=true',
-    path   => $rpki::params::pupdeffile,
-    notify => Service["puppet"],
-  } ->
+  }
+  if $rpki::params::pup_def_agent != undef {
+    file_line { 'start puppet on boot': # xxx: debian-ism
+      ensure => present,
+      match  => '^#?START=',
+      line   => 'START=true',
+      path   => $rpki::params::pup_def_agent,
+      notify => Service["puppet"],
+    }
+  }
   ini_setting { 'puppet server':
     ensure => 'present',
     path   => '/etc/puppet/puppet.conf',

@@ -26,6 +26,7 @@ class rpki::params () {
     # puppet server
     $rolePuppetServer = false
     $puppetPort = 8140
+    $pup_def_master = '/etc/default/puppetmaster'
     # -- for git_cron script
     $gitCron_infraRepoDir = '/var/lib/rpki-mgmt'
     $gitCron_infraRepoName = 'rpki-mgmt.git'
@@ -48,12 +49,14 @@ class rpki::params () {
 
     case $::lsbmajdistrelease {
       '8': {
-        $pupdeffile = '/etc/default/puppetmaster'
+        $pup_def_agent = undef
         $ipt_pkg = 'netfilter-persistent'
+        $apt_path = 'APTng/rpki.$::lsbdistcodename.list'
       }
       '7': {
-        $pupdeffile = '/etc/default/puppet.conf'
+        $pup_def_agent = '/etc/default/puppet'
         $ipt_pkg = 'iptables-persistent'
+        $apt_path = 'APT/rpki.$::lsbdistcodename.list'
       }
       default: { fail("debian release $::lsbmajdistrelease not supported") }
     }

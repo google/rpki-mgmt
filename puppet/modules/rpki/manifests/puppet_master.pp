@@ -25,6 +25,17 @@ class rpki::puppet_master(
   package { ['git', 'puppetmaster', 'puppet-lint']:
     ensure => 'installed',
   }
+
+  if $rpki::params::pup_def_master != undef {
+    file_line { 'start puppet on boot': # xxx: debian-ism
+      ensure => present,
+      match  => '^#?START=',
+      line   => 'START=true',
+      path   => $rpki::params::pup_def_master,
+      notify => Service["puppet"],
+    }
+  }
+
   file { "/usr/local/sbin/git_cron.sh":
     source  => "puppet:///modules/rpki/git_cron.sh",
     ensure => 'file',
