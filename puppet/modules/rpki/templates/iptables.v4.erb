@@ -35,7 +35,13 @@
 <% end -%>
 <% if @rolePuppetServer == true -%>
 # puppet master
+<% if @puppetClients.empty? -%>
 -A INPUT -p tcp -m state --state NEW --dport <%= @puppetPort %> -j ACCEPT
+<% else -%>
+<% puppetClients.each do |source| -%>
+-A INPUT -s <%= source %> -p tcp -m state --state NEW --dport <%= @puppetPort %> -j ACCEPT
+<% end -%>
+<% end -%>
 
 <% end -%>
 <% if @roleRPKI_CA == true -%>

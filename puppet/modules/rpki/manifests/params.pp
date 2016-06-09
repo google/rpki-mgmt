@@ -26,6 +26,7 @@ class rpki::params () {
     # puppet server
     $rolePuppetServer = false
     $puppetPort = 8140
+    $puppetClients = []
     $pup_def_master = '/etc/default/puppetmaster'
     # -- for git_cron script
     $gitCron_infraRepoDir = '/var/lib/rpki-mgmt'

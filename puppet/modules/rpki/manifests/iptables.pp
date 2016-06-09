@@ -33,6 +33,7 @@ class rpki::iptables(
   # puppet server
   $rolePuppetServer = $::rpki::params::rolePuppetServer,
   $puppetPort = $::rpki::params::puppetPort,
+  $puppetClients = $::rpki::params::puppetClients,
 
   # rpki CA
   $roleRPKI_CA = $::rpki::params::roleRPKI_CA,

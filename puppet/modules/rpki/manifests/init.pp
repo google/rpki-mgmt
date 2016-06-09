@@ -132,6 +132,7 @@ class rpki::role::puppet_master {
 
   class { 'rpki::iptables':
     rolePuppetServer => true,
+    puppetClients => $puppet_client_range,
     sshRestrictSource => $ssh_client_range,
     sshUnrestrictedPort => $ssh_unrestricted_port,
   }

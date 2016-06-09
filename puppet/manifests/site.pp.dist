@@ -47,6 +47,9 @@ $syslog_servers = [
                   ]
 
 $puppet_server = 'puppet.example.com'
+$puppet_client_range = [
+                        '10.0.0.0/8',
+                       ]
 
 # where do publication servers get their data?
 # TODO: handle multiple sources, distribute amongst pub servers

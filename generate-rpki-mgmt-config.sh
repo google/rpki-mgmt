@@ -115,6 +115,9 @@ EOF
    if [ -n "$rm_puppet" ]; then
       echo "   \$puppet_server = \"\$${prefix}_puppet_server\"" >> "$pp"
    fi
+   if [ -n "$rm_puppet_clients" ]; then
+      echo "   \$puppet_client_range = \"\$${prefix}_puppet_client_range\"" >> "$pp"
+   fi
    if [ -n "$rm_master" ]; then
       echo "   \$ca_server = \"\$${prefix}_ca_server\"" >> "$pp"
    fi
@@ -149,6 +152,7 @@ rm_branch=${RPKIMGMT_BRANCH:-master}
 
 # puppet server
 rm_puppet=${RPKIMGMT_PUPPET_SERVER}
+rm_puppet_clients=${RPKIMGMT_PUPPET_CLIENTS}
 
 # syslog servers
 rm_syslog=${RPKIMGMT_SYSLOG_SERVERS}
@@ -199,6 +203,8 @@ if [ $group -eq 0 ]; then
 fi
 query_val "Host name of puppet server" rm_puppet
 rm_puppet="$qv_ans"
+query_vals "IP addresses (or ipaddress/prefix) of clients allowed to connect to puppet server" rm_puppet_clients
+rm_puppet_clients="$qv_ans"
 query_val "Host name of RPKI CA/RP server" rm_master
 rm_master="$qv_ans"
 query_vals "Host name(s) of syslog-ng server(s)" rm_syslog
@@ -218,7 +224,8 @@ if [ $group -eq 0 ]; then
    echo "UNIX Group for rpki-mgmt directory    : $rm_group"
    echo "IP range for ssh access to all servers: $rm_ssh"
 fi
-echo "Host name of pupper server            : $rm_puppet"
+echo "Host name of puppet server            : $rm_puppet"
+echo "IP addresses/ranges of puppet clients : $rm_puppet_clients"
 echo "Host name of RPKI CA/RP server        : $rm_master"
 echo "Host name(s) of syslog-ng server(s)   : $rm_syslog"
 echo "Host name(s) of RPKI publication server(s): $rm_publication"
@@ -266,6 +273,18 @@ if [ $group -eq 0 -o -n "$rm_puppet" ]; then
    cat >> "$pp" <<EOF
 # puppet master
 \$${rm_prefix}puppet_server = '$rm_puppet'
+# optional list of allow ipaddresses (or ipaddress/prefix) allowed
+# to connect to puppet server
+\$${rm_prefix}$puppet_client_range = [
+EOF
+
+for host in $rm_puppet_clients
+do
+   echo "    '$host'," >> "$pp"
+done
+
+cat >> "$pp" <<EOF
+  ]
 
 EOF
 fi
@@ -287,7 +306,7 @@ EOF
 
 for host in $rm_syslog
 do
-   echo "                   '$host'," >> "$pp"
+   echo "    '$host'," >> "$pp"
 done
 
 cat >> "$pp" <<EOF
@@ -307,7 +326,7 @@ EOF
 
 for host in $rm_publication
 do
-   echo "                   '$host'," >> "$pp"
+   echo "    '$host'," >> "$pp"
 done
 
 cat >> "$pp" <<EOF
