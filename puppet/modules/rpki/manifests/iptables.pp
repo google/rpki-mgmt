@@ -45,6 +45,7 @@ class rpki::iptables(
   
   ) inherits ::rpki::params {
 
+<<<<<<< HEAD
   file { '/etc/iptables':
     ensure => 'directory',
     mode => 0750,
@@ -52,6 +53,8 @@ class rpki::iptables(
     group => 'root',
   }
 
+=======
+>>>>>>> parent of 63ebd50... Iptables config was failing to install:
   file { '/etc/iptables/rules.v4':
     content => template('rpki/iptables.v4.erb'),
     ensure => 'present',
