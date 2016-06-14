@@ -444,10 +444,7 @@ if [ $group -eq 0 ]; then
    chgrp -R "$rm_group" "$rm_base"
 
    echo "* Installing required puppet modules"
-
-   for module in puppetlabs-stdlib puppetlabs-inifile; do
-       puppet module install ${module}
-   done
+   puppet module install puppetlabs-stdlib puppetlabs-inifile
 
 else
 
