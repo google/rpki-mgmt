@@ -46,7 +46,7 @@ class rpki::iptables(
   ) inherits ::rpki::params {
 
   file { '/etc/iptables':
-    ensure => 'present',
+    ensure => 'directory',
     mode => 0750,
     owner => 'root',
     group => 'root',
