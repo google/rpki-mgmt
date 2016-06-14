@@ -203,7 +203,7 @@ if [ $group -eq 0 ]; then
 fi
 query_val "Host name of puppet server" rm_puppet
 rm_puppet="$qv_ans"
-query_vals "IP addresses (or ipaddress/prefix) of clients allowed to connect to puppet server" rm_puppet_clients
+query_vals "IP addresses (or ip address/prefix) of clients allowed to connect to puppet server" rm_puppet_clients
 rm_puppet_clients="$qv_ans"
 query_val "Host name of RPKI CA/RP server" rm_master
 rm_master="$qv_ans"
@@ -273,9 +273,9 @@ if [ $group -eq 0 -o -n "$rm_puppet" ]; then
    cat >> "$pp" <<EOF
 # puppet master
 \$${rm_prefix}puppet_server = '$rm_puppet'
-# optional list of allow ipaddresses (or ipaddress/prefix) allowed
+# optional list of allow ip addresses (or ip address/prefix) allowed
 # to connect to puppet server
-\$${rm_prefix}$puppet_client_range = [
+\$${rm_prefix}puppet_client_range = [
 EOF
 
 for host in $rm_puppet_clients
