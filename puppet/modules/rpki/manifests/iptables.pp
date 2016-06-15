@@ -52,6 +52,7 @@ class rpki::iptables(
     owner => 'root',
     group => 'root',
     notify => Service["$rpki::params::ipt_pkg"],
+    require => Package["$rpki::params::ipt_pkg"],
   }
 
   }
