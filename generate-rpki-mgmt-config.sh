@@ -445,7 +445,7 @@ if [ $group -eq 0 ]; then
 
    echo "* Installing required puppet modules"
 
-   for module in puppetlabs-stdlib pupeptlabs-inifile; do
+   for module in puppetlabs-stdlib puppetlabs-inifile; do
        puppet module install ${module}
    done
 
