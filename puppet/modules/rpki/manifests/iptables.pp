@@ -51,8 +51,8 @@ class rpki::iptables(
     mode => '0644',
     owner => 'root',
     group => 'root',
-    notify => Service["$rpki::params::ipt_pkg"],
-    require => Package["$rpki::params::ipt_pkg"],
+    notify => Service["$rpki::params::ipt_svc"],
+    require => Package["iptables-persistent"],
   }
 
   }

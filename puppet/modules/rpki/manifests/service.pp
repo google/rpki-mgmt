@@ -29,10 +29,10 @@ class rpki::service(
     hasrestart => true,
   }
 
-  service { "$rpki::params::ipt_pkg":
+  service { "$rpki::params::ipt_svc":
     ensure => "running",
     enable => 'true',
-    require => Package["$rpki::params::ipt_pkg"],
+    require => Package["$rpki::params::ipt_svc"],
     hasrestart => true,
   }
 
