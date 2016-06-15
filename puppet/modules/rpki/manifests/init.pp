@@ -182,6 +182,10 @@ class rpki::role::rpki_master {
     require => File['/usr/share/rpki/publication'],
   }
 
+  package { 'exim4':
+    ensure => 'installed',
+  }
+
   include rpki::ca
 }
 
