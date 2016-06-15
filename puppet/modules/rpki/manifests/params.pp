@@ -52,12 +52,12 @@ class rpki::params () {
       '8': {
         $pup_def_agent = undef
         $ipt_svc = 'netfilter-persistent'
-        $apt_path = 'APTng/rpki.$::lsbdistcodename.list'
+        $apt_path = "APTng/rpki.$::lsbdistcodename.list"
       }
       '7': {
         $pup_def_agent = '/etc/default/puppet'
         $ipt_svc = 'iptables-persistent'
-        $apt_path = 'APT/rpki.$::lsbdistcodename.list'
+        $apt_path = "APT/rpki.$::lsbdistcodename.list"
       }
       default: { fail("debian release $::lsbmajdistrelease not supported") }
     }
