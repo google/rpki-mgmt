@@ -90,7 +90,7 @@ class rpki::role::pub_server {
   }
 
   # publish rpki data for the world
-  file { ['/srv/rsync/', '/srv/rsync/rpki/', '/srv/rsync/rpki/latest/']:
+  file { ['/srv/rsync/', '/srv/rsync/rpki/']:
     ensure => directory,
     owner  => 'root',
     group  => 'root',
@@ -98,7 +98,7 @@ class rpki::role::pub_server {
   }
   class { 'rpki::publish':
     moduleName => 'rpki',
-    modulePath => '/srv/rsync/rpki/latest',
+    modulePath => '/srv/rsync/rpki',
     moduleDescription => "$::hostname $rsync_module_description",
     moduleSource => "${ca_server}::rpki/",
     require => File['/srv/rsync/rpki'],
