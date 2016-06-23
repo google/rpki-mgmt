@@ -22,10 +22,6 @@ gid             = nogroup
     use chroot          = no
     read only           = yes
     transfer logging    = yes
-    <% if @ca_server != nil -%>
     path                = <%= @modulePath %>
-    <% else -%>
-    path                = <%= @modulePath %>/latest
-    <% end -%>
     comment             = <%= @moduleDescription %>
 
