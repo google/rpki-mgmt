@@ -38,7 +38,7 @@ fi
 
 cd $dest
 
-(( delay = $RANDOM % 60 ))
+let "delay = $RANDOM % 60"
 sleep $delay
 
 # sync to date dir, hardlinking to files from latest/ if no changes
