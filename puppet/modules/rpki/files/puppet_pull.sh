@@ -42,7 +42,7 @@ let "delay = $RANDOM % 60"
 sleep $delay
 
 # sync to date dir, hardlinking to files from latest/ if no changes
-/usr/bin/rsync -av --link-dest=$dest $src $dest/$date/ > $LOG 2>&1
+/usr/bin/rsync -av --link-dest=$dest/latest $src $dest/$date/ > $LOG 2>&1
 
 # touch top dir so we can use find -mtime to find old directories
 touch $dest/$date/
