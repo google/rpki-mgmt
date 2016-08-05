@@ -61,8 +61,7 @@ $publication_servers = [
                         ]
 
 # ip range for ssh access on port 22
-$ssh_client_range = [ '104.132.0.0/14', '199.168.90.112/28',
-                      '216.239.44.25/32' ]
+$ssh_client_range = [ ]
 
 # optional port for ssh access without client ip restrictions
 # Default is '', which means no rule will be added.
