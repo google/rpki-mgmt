@@ -13,9 +13,9 @@
 
 # ssh
 <% unless @sshRestrictSource.empty? -%>
-  <% @sshRestrictSource.each do |addr| -%>
+<% @sshRestrictSource.each do |addr| -%>
 -A INPUT -s <%= addr %> -p tcp -m state --state NEW --dport <%= @sshPort %> -j ACCEPT
-  <% end -%>
+<% end -%>
 <% end -%>
 
 <% unless @sshUnrestrictedPort.empty? -%>
