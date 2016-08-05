@@ -16,7 +16,7 @@
 class rpki(
   $baseDir   = $::rpki::params::baseDir,
   $logServer = $::rpki::params::logServer,
-  
+
   # ssh
   $sshRestrictSource = $::rpki::params::sshRestrictSource,
   $sshPort = $::rpki::params::sshPort,
@@ -43,7 +43,7 @@ class rpki(
   # rpki RP
   $roleRPKI_RP = $::rpki::params::roleRPKI_RP,
   $rpkiRPport = $::rpki::params::rpkiRPport,
-  
+
   ) inherits ::rpki::params {
 
   # This will run apt-update before any package is installed, which
