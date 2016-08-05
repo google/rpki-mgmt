@@ -11,8 +11,15 @@
 # Accepts all established inbound connections
 -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
 
+# Failsafe (TODO(morrowc): remove this.)
+-A INPUT -p tcp --dport 22 -s 104.132.12.91 -j ACCEPT
 # ssh
--A INPUT<% unless @sshRestrictSource.empty? -%> -s <%= @sshRestrictSource %><% end -%> -p tcp -m state --state NEW --dport <%= @sshPort %> -j ACCEPT
+<% unless @sshRestrictSource.empty? -%>
+  <% @sshRestrictSource.each do |addr| -%>
+-A INPUT -s <%= addr %> -p tcp -m state --state NEW --dport <%= @sshPort %> -j ACCEPT
+  <% end -%>
+<% end -%>
+
 <% unless @sshUnrestrictedPort.empty? -%>
 -A INPUT -p tcp -m state --state NEW --dport <%= @sshUnrestrictedPort %> -j ACCEPT
 <% end -%>
