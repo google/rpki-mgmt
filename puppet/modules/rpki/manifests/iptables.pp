@@ -42,7 +42,7 @@ class rpki::iptables(
   # rpki RP
   $roleRPKI_RP = $::rpki::params::roleRPKI_RP,
   $rpkiRPport = $::rpki::params::rpkiRPport,
-  
+
   ) inherits ::rpki::params {
 
   file { '/etc/iptables/rules.v4':
